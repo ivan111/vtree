@@ -47,20 +47,15 @@ var vtree = (function ()
     {
         var indexOf;
 
-        if ( typeof Array.prototype.indexOf === 'function' )
-        {
+        if ( typeof Array.prototype.indexOf === 'function' ) {
             indexOf = Array.prototype.indexOf;
-        }
-        else
-        {
+        } else {
             indexOf = function ( needle )
             {
                 var i = -1, index = -1;
 
-                for ( i = 0; i < this.length; i++ )
-                {
-                    if ( this[i] === needle )
-                    {
+                for ( i = 0; i < this.length; i++ ) {
+                    if ( this[i] === needle ) {
                         index = i;
                         break;
                     }
