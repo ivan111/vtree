@@ -1,0 +1,405 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Tree Data Visualizer</title>
+
+<!-- stylesheets -->
+<link rel="stylesheet" href="css/vtree.css" type="text/css"/>
+
+<!-- third-party javascript -->
+<script src="js/d3.js"></script>
+
+<!-- our javascript -->
+<script src="js/vtree.js"></script>
+
+<script type="text/javascript">
+window.onload = function () {
+    var i, NUM_TEST = 12;
+
+    for ( i = 0; i < NUM_TEST; i++ ) {
+        vtree.converts( document.getElementById( 'code-test' + i ).innerHTML, document.getElementById( 'div-test' + i ) );
+    }
+};
+
+</script>
+
+</head>
+
+<body>
+
+<h1>Tree Data Visualizer</h1>
+
+
+
+
+
+<div>
+<code id="code-test0">
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [125.6, 10.1]
+  },
+  "properties": {
+    "name": "Dinagat Islands"
+  }
+}
+</code>
+</div>
+
+<div id="div-test0"></div>
+
+
+
+
+
+
+
+
+<div>
+<code id="code-test1">{"name": "=" ,"children": [{"name": "id=range"},{"name": "class=range"}]}</code>
+</div>
+
+<div id="div-test1"></div>
+
+
+
+
+<div>
+<code id="code-test2">{"name": "for" ,"children": [{"name": "id=i"},{"name": "call" ,"children": [{"name": "id=range"},{"name": "list" ,"children": [{"name": "1"},{"name": "cell" ,"children": [{"name": "5"},{"name": "None"}]},{"name": "cell" ,"children": [{"name": "5"},{"name": "None"}]}]}]},{"name": "cell" ,"children": [{"name": "call" ,"children": [{"name": "id=print"},{"name": "list" ,"children": [{"name": "1"},{"name": "cell" ,"children": [{"name": "id=i"},{"name": "None"}]},{"name": "cell" ,"children": [{"name": "id=i"},{"name": "None"}]}]}]},{"name": "None"}]}]}</code>
+</div>
+
+<div id="div-test2"></div>
+
+
+
+<div>
+<code id="code-test3">{"employees":[
+    {"firstName":"John", "lastName":"Doe"},
+    {"firstName":"Anna", "lastName":"Smith"},
+    {"firstName":"Peter", "lastName":"Jones"}
+]}</code>
+</div>
+
+<div id="div-test3"></div>
+
+
+
+
+<div>
+<code id="code-test4">
+{
+    "firstName": "John",
+    "lastName": "Smith",
+    "gender": "man",
+    "age": 32,
+    "address": {
+        "streetAddress": "21 2nd Street",
+        "city": "New York",
+        "state": "NY",
+        "postalCode": "10021"
+    },
+    "phoneNumbers": [
+        { "type": "home", "number": "212 555-1234" },
+        { "type": "fax", "number": "646 555-4567" }
+    ]
+}
+</code>
+</div>
+
+<div id="div-test4"></div>
+
+
+
+
+<div>
+<code id="code-test5">{
+    name: "/",
+    contents: [
+        {
+            name: "Applications",
+            contents: [
+                { name: "Mail.app" },
+                { name: "iPhoto.app" },
+                { name: "Keynote.app" },
+                { name: "iTunes.app" },
+                { name: "XCode.app" },
+                { name: "Numbers.app" },
+                { name: "Pages.app" }
+            ]
+        },
+        {
+            name: "System",
+            contents: []
+        },
+        {
+            name: "Library",
+            contents: [
+                {
+                    name: "Application Support",
+                    contents: [
+                        { name: "Adobe" },
+                        { name: "Apple" },
+                        { name: "Google" },
+                        { name: "Microsoft" }
+                    ]
+                },
+                {
+                    name: "Languages",
+                    contents: [
+                        { name: "Ruby" },
+                        { name: "Python" },
+                        { name: "Javascript" },
+                        { name: "C#" }
+                    ]
+                },
+                {
+                    name: "Developer",
+                    contents: [
+                        { name: "4.2" },
+                        { name: "4.3" },
+                        { name: "5.0" },
+                        { name: "Documentation" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "opt",
+            contents: []
+        },
+        {
+            name: "Users",
+            contents: [
+                { name: "pavanpodila" },
+                { name: "admin" },
+                { name: "test-user" }
+            ]
+        }
+    ]
+}</code>
+</div>
+
+<div id="div-test5"></div>
+
+
+
+
+<div>
+<code id="code-test6">
+{
+  "first": "John",
+  "last": "Doe",
+  "age": 39,
+  "sex": "M",
+  "salary": 70000,
+  "registered": true,
+  "interests": [ "Reading", "Mountain Biking", "Hacking" ],
+  "favorites": {
+    "color": "Blue",
+    "sport": "Soccer",
+    "food": "Spaghetti"
+  }, 
+  "skills": [
+    {
+      "category": "JavaScript",
+      "tests": [
+        { "name": "One", "score": 90 },
+        { "name": "Two", "score": 96 }
+      ] 
+    },
+    {
+      "category": "CouchDB",
+      "tests": [
+        { "name": "One", "score": 79 },
+        { "name": "Two", "score": 84 }
+      ] 
+    },
+    {
+      "category": "Node.js",
+      "tests": [
+        { "name": "One", "score": 97 },
+        { "name": "Two", "score": 93 }
+      ] 
+    }
+  ]
+}
+</code>
+</div>
+
+<div id="div-test6"></div>
+
+
+
+
+
+
+<div>
+<code id="code-test7">
+{
+    "items": [
+        {
+            "index": 1,
+            "index_start_at": 56,
+            "integer": 29,
+            "float": 16.8278,
+            "name": "Milton",
+            "surname": "Jensen",
+            "fullname": "Sheryl Winters",
+            "email": "denise@weiss.na",
+            "bool": false
+        }
+    ]
+}
+</code>
+</div>
+
+<div id="div-test7"></div>
+
+
+
+
+
+<div>
+<code id="code-test8">
+    {
+  "array": [
+    1,
+    2,
+    3
+  ],
+  "boolean": true,
+  "null": null,
+  "number": 123,
+  "object": {
+    "a": "b",
+    "c": "d",
+    "e": "f"
+  },
+  "string": "Hello World"
+}
+</code>
+</div>
+
+<div id="div-test8"></div>
+
+
+
+
+
+
+<div>
+<code id="code-test9">
+{
+    "responseData": {
+        "results": [{
+            "GsearchResultClass": "GwebSearch",
+            "unescapedUrl": "http://en.wikipedia.org/wiki/Stack_(abstract_data_type )",
+            "url": "http://en.wikipedia.org/wiki/Stack_(abstract_data_type )",
+            "visibleUrl": "en.wikipedia.org",
+            "cacheUrl": "http://www.google.com/search?q\u003dcache:hhCsdZCgMlUJ:en.wikipedia.org ",
+            "title": "\u003cb\u003eStack\u003c/b\u003e (abstract data type) - Wikipedia, the free encyclopedia",
+            "titleNoFormatting": "Stack (abstract data type) - Wikipedia, the free encyclopedia",
+            "content": "In computer science, a \u003cb\u003estack\u003c/b\u003e is a particular kind of abstract data type or collection \nin which the principal (or only) operations on the collection are the addition of \u003cb\u003e...\u003c/b\u003e"
+        }, {
+            "GsearchResultClass": "GwebSearch",
+            "unescapedUrl": "http://stackoverflow.com/",
+            "url": "http://stackoverflow.com/",
+            "visibleUrl": "stackoverflow.com",
+            "cacheUrl": "http://www.google.com/search?q\u003dcache:U1GC2GYOToIJ:stackoverflow.com ",
+            "title": "\u003cb\u003eStack\u003c/b\u003e Overflow",
+            "titleNoFormatting": "Stack Overflow",
+            "content": "A language-independent collaboratively edited question and answer site for \nprogrammers."
+        }, {
+            "GsearchResultClass": "GwebSearch",
+            "unescapedUrl": "http://www.stack.com/ ",
+            "url": "http://www.stack.com/ ",
+            "visibleUrl": "www.stack.com",
+            "cacheUrl": "http://www.google.com/search?q\u003dcache:E20ImyHZCpIJ:www.stack.com ",
+            "title": "Get Bigger, Stronger, Better, Faster | \u003cb\u003eSTACK\u003c/b\u003e",
+            "titleNoFormatting": "Get Bigger, Stronger, Better, Faster | STACK",
+            "content": "Get better at the sports you play and the life you lead at \u003cb\u003eSTACK\u003c/b\u003e. Improve your \ntraining, nutrition and lifestyle with daily."
+        }, {
+            "GsearchResultClass": "GwebSearch",
+            "unescapedUrl": "http://docs.oracle.com/javase/7/docs/api/java/util/Stack.html ",
+            "url": "http://docs.oracle.com/javase/7/docs/api/java/util/Stack.html ",
+            "visibleUrl": "docs.oracle.com",
+            "cacheUrl": "http://www.google.com/search?q\u003dcache:5G3WpASlFXAJ:docs.oracle.com ",
+            "title": "\u003cb\u003eStack\u003c/b\u003e (Java Platform SE 7 ) - Oracle Documentation",
+            "titleNoFormatting": "Stack (Java Platform SE 7 ) - Oracle Documentation",
+            "content": "The \u003cb\u003eStack\u003c/b\u003e class represents a last-in-first-out (LIFO) \u003cb\u003estack\u003c/b\u003e of objects. It extends \nclass Vector with five operations that allow a vector to be treated as a \u003cb\u003estack\u003c/b\u003e."
+        }],
+        "cursor": {
+            "resultCount": "18,800,000",
+            "pages": [{
+                "start": "0",
+                "label": 1
+            }, {
+                "start": "4",
+                "label": 2
+            }, {
+                "start": "8",
+                "label": 3
+            }, {
+                "start": "12",
+                "label": 4
+            }, {
+                "start": "16",
+                "label": 5
+            }, {
+                "start": "20",
+                "label": 6
+            }, {
+                "start": "24",
+                "label": 7
+            }, {
+                "start": "28",
+                "label": 8
+            }],
+            "estimatedResultCount": "18800000",
+            "currentPageIndex": 0,
+            "moreResultsUrl": "http://www.google.com/search?oe\u003dutf8\u0026ie\u003dutf8\u0026source\u003duds\u0026start\u003d0\u0026hl\u003den\u0026q\u003dstack ",
+            "searchResultTime": "0.14"
+        }
+    },
+    "responseDetails": null,
+    "responseStatus": 200
+}
+</code>
+</div>
+
+<div id="div-test9"></div>
+
+
+
+
+
+<div>
+<code id="code-test10">
+
+
+{"responseData": {"feed":{"feedUrl":"http://feeds.feedburner.com/marcqualie","title":"Marc Qualie","link":"http://blog.marcqualie.com/","author":"","description":"My Personal Tech Blog and Ramblings","type":"atom10","entries":[{"title":"Server Backups with s3cmd","link":"http://feedproxy.google.com/~r/marcqualie/~3/acTzLDpmoBA/server-backups-with-s3cmd","author":"Marc Qualie","publishedDate":"Sun, 28 Jul 2013 13:04:32 -0700","contentSnippet":"I've been asked a few times how I back up my servers at Digital Ocean. It seems this topic is quite popular due to the fact ...","content":"I've been asked a few times how I back up my servers at \u003ca href\u003d\"https://www.digitalocean.com/?refcode\u003d4f6e23440060\"\u003eDigital Ocean\u003c/a\u003e. It seems this topic is quite popular due to the fact they just started charging for automated backups on the 1st of July. In this article I'm going to go through the process of using \u003ca href\u003d\"http://s3tools.org/s3cmd\"\u003es3cmd\u003c/a\u003e with \u003ca href\u003d\"https://aws.amazon.com/s3/\"\u003eAmazon S3\u003c/a\u003e to easily backup and restore your servers. Although I use Digital Ocean as my own hosting company, and this is where this backup system is in place, it can just as easily be transferred to any hosting provider.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/linux\"\u003eLinux\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/digital-ocean\"\u003eDigital Ocean\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/aws\"\u003eAWS\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/backup\"\u003eBackup\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/servers\"\u003eServers\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/s3\"\u003eS3\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/07/server-backups-with-s3cmd\"\u003ehttp://marcqualie.com/2013/07/server-backups-with-s3cmd\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/acTzLDpmoBA\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Linux","Digital Ocean","AWS","Backup","Servers","S3"]},{"title":"Criterion: A PHP CI Server","link":"http://feedproxy.google.com/~r/marcqualie/~3/2OSaAVrZ2-A/criterion:-a-php-ci-server","author":"Marc Qualie","publishedDate":"Sat, 20 Jul 2013 12:42:06 -0700","contentSnippet":"Today, the Romhut team just released an open source project that has been aggressively developed over the last few weeks. It ...","content":"Today, the Romhut team just released an open source project that has been aggressively developed over the last few weeks. It started as a personal tool to test our many private repositories in a controlled environment but quickly evolved into a fully fledged, generic open source continuous integration server. Thanks to hours of discussion and endless commits (mainly from \u003ca href\u003d\"https://github.com/scottymeuk\"\u003e@scottymeuk\u003c/a\u003e), \u003ca href\u003d\"http://romhut.github.io/criterion\"\u003eCriterion\u003c/a\u003e was born.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/open-source\"\u003eOpen Source\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/php\"\u003ePHP\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/ci\"\u003eCI\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/romhut\"\u003eRomhut\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/07/criterion:-a-php-ci-server\"\u003ehttp://marcqualie.com/2013/07/criterion:-a-php-ci-server\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/2OSaAVrZ2-A\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Open Source","PHP","CI","Romhut"]},{"title":"Homebrew Nginx Tap","link":"http://feedproxy.google.com/~r/marcqualie/~3/-lMBWS9lz9I/homebrew-nginx-tap","author":"Marc Qualie","publishedDate":"Sun, 30 Jun 2013 02:31:46 -0700","contentSnippet":"I've recently been working on an Nginx Tap for Mac OS X Homebrew and now I think it's time to share with the world. Originally ...","content":"I've recently been working on an \u003ca href\u003d\"https://github.com/marcqualie/homebrew-nginx\"\u003eNginx Tap\u003c/a\u003e for Mac OS X Homebrew and now I think it's time to share with the world. Originally I created a pull request on the original repo but due to the custom nature of the modules I needed it was reccomended that I create a tap and maintain my own repository (tap). The main goal behind the tap is to create a version of Nginx with as many modules as possible so people can create fully custom builds very easily.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/open-source\"\u003eOpen Source\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/nginx\"\u003eNginx\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/ruby\"\u003eRuby\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/homebrew\"\u003eHomebrew\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/06/homebrew-nginx-tap\"\u003ehttp://marcqualie.com/2013/06/homebrew-nginx-tap\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/-lMBWS9lz9I\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Open Source","Nginx","Ruby","Homebrew"]},{"title":"Open Source Challenge Complete!","link":"http://feedproxy.google.com/~r/marcqualie/~3/K36wPrXGE0s/open-source-challenge-complete","author":"Marc Qualie","publishedDate":"Thu, 20 Jun 2013 14:20:35 -0700","contentSnippet":"For those of you that follow my blog reguarly, a few weeks ago I announced I was undertaking my Open Source Challenge. Today ...","content":"For those of you that follow my blog reguarly, a few weeks ago I announced I was undertaking my \u003ca href\u003d\"/2013/05/open-source-challenge\"\u003eOpen Source Challenge\u003c/a\u003e. Today marks the 32nd day of consecutive code pushes, so I successfully completed my goal! I've attached a list of the projects I contributed to for you guys to check out.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/open-source\"\u003eOpen Source\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/php\"\u003ePHP\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/06/open-source-challenge-complete\"\u003ehttp://marcqualie.com/2013/06/open-source-challenge-complete\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/K36wPrXGE0s\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Open Source","PHP"]},{"title":"StatsD PHP Library","link":"http://feedproxy.google.com/~r/marcqualie/~3/RkDcfkSNX54/statsd-php-library","author":"Marc Qualie","publishedDate":"Thu, 13 Jun 2013 05:09:44 -0700","contentSnippet":"Today, I just created a StatsD PHP Library and released it on Github . Before you start with \"but there are already loads..\", I ...","content":"Today, I just created a \u003ca href\u003d\"https://github.com/etsy/statsd/\"\u003eStatsD\u003c/a\u003e PHP Library and released it on \u003ca href\u003d\"https://github.com/marcqualie/php-statsd\"\u003eGithub \u003c/a\u003e. Before you start with \"but there are already loads..\", I do realise this, but they didn't suite my needs. This is a short post to let you know why I opted to create my own, and what I hope to achieve from it.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/open-source\"\u003eOpen Source\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/github\"\u003eGithub\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/php\"\u003ePHP\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/statistics\"\u003eStatistics\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/library\"\u003eLibrary\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/06/statsd-php-library\"\u003ehttp://marcqualie.com/2013/06/statsd-php-library\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/RkDcfkSNX54\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Open Source","Github","PHP","Statistics","Library"]},{"title":"Open Source Challenge","link":"http://feedproxy.google.com/~r/marcqualie/~3/Vs9h5mvWdOs/open-source-challenge","author":"Marc Qualie","publishedDate":"Mon, 27 May 2013 04:13:48 -0700","contentSnippet":"It's bank Holiday Monday and I think it's about time for a new challenge. I've been working a lot with Open Source lately, both ...","content":"It's bank Holiday Monday and I think it's about time for a new challenge. I've been working a lot with Open Source lately, both contributing to other people's projects and refactoring/improving my own. My current contribution streak on Github is 8 consecutive days of published code, which is pretty awesome considering my previous best was 2 days from about 6 months ago. Not only is this making me a better programmer but it's also extremely fun. With this in mind I've decided the new challenge is to try and create a 32 day streak.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/open-source\"\u003eOpen Source\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/programming\"\u003eProgramming\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/github\"\u003eGithub\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/challenge\"\u003eChallenge\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/05/open-source-challenge\"\u003ehttp://marcqualie.com/2013/05/open-source-challenge\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/Vs9h5mvWdOs\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Open Source","Programming","Github","Challenge"]},{"title":"Why I use Digital Ocean Hosting","link":"http://feedproxy.google.com/~r/marcqualie/~3/qoXUdyFGckQ/why-i-use-digital-ocean-hosting","author":"Marc Qualie","publishedDate":"Thu, 23 May 2013 12:19:14 -0700","contentSnippet":"In the last few years I've used a lot of hosting providers. Until now I've never actually found any that have been able to ...","content":"In the last few years I've used a lot of hosting providers. Until now I've never actually found any that have been able to satisfy my needs at the right price. Sure, there are huge companies such as AWS, Rackspace and Softlayer to name a few, but who has the budget to use these kinds of providers for research or personal projects outside of a big enterprise company. Previously I used Linode. I'm going to let you guys know why I switched and why \u003ca href\u003d\"https://www.digitalocean.com/?refcode\u003d4f6e23440060\"\u003eDigital Ocean\u003c/a\u003e is my host of choice right now.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/hosting\"\u003eHosting\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/promotion\"\u003ePromotion\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/digital-ocean\"\u003eDigital Ocean\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/05/why-i-use-digital-ocean-hosting\"\u003ehttp://marcqualie.com/2013/05/why-i-use-digital-ocean-hosting\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/qoXUdyFGckQ\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Hosting","Promotion","Digital Ocean"]},{"title":"Why I learned Ruby","link":"http://feedproxy.google.com/~r/marcqualie/~3/MUhruEiZUgY/why-i-learned-ruby","author":"Marc Qualie","publishedDate":"Sat, 04 May 2013 13:30:13 -0700","contentSnippet":"For a while now I've been hearing a lot of people taking about the programming language Ruby. Not that it's anything new, it ...","content":"For a while now I've been hearing a lot of people taking about the programming language Ruby. Not that it's anything new, it just seems to be a lot more popular in my circle of friends and my Twitter feed. Naturally, as a professional PHP developer, I should hate the idea of Ruby and start some crazy argument about how PHP is far superior and Ruby should die (blah blah etc.. boring). Instead of this approach, I took it upon myself to learn Ruby from the ground up and understand why so many people enjoy using it to power their applications. Too many people argue over things without understanding both points of view, which always annoys me.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/programming\"\u003eProgramming\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/php\"\u003ePHP\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/project\"\u003eProject\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/ruby\"\u003eRuby\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/05/why-i-learned-ruby\"\u003ehttp://marcqualie.com/2013/05/why-i-learned-ruby\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/MUhruEiZUgY\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Programming","PHP","Project","Ruby"]},{"title":"Using Cloudflare Page Rules","link":"http://feedproxy.google.com/~r/marcqualie/~3/-qkvCDEJ0p0/using-cloudflare-page-rules","author":"Marc Qualie","publishedDate":"Mon, 01 Apr 2013 11:46:04 -0700","contentSnippet":"Today, I decided to explore Cloudflare features in a bit more depth. I currently manage quite a few applications, both personal ...","content":"Today, I decided to explore Cloudflare features in a bit more depth. I currently manage quite a few applications, both personal and business related on the platform. One feature which I'd never really looked into before was Page Rules. I'd read about them, but never actually applied them to any sites. Due to how much of an affect it actually had by applying a few rules, I feel like I should spread the word for anyone who isn't aware of what they are and how amazing they can be when used correctly.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/php\"\u003ePHP\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/nginx\"\u003eNginx\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/cloudflare\"\u003eCloudflare\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/cache\"\u003eCache\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/cdn\"\u003eCDN\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/04/using-cloudflare-page-rules\"\u003ehttp://marcqualie.com/2013/04/using-cloudflare-page-rules\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/-qkvCDEJ0p0\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["PHP","Nginx","Cloudflare","Cache","CDN"]},{"title":"New Writing Topics","link":"http://feedproxy.google.com/~r/marcqualie/~3/NsovESjzfNM/new-writing-topics","author":"Marc Qualie","publishedDate":"Wed, 20 Mar 2013 16:34:59 -0700","contentSnippet":"I've been neglecting my Blog lately mainly because I feel like I need to always write masses of code examples and showcase my ...","content":"I've been neglecting my Blog lately mainly because I feel like I need to always write masses of code examples and showcase my own projects but I've decided that shouldn't be the case. Most of the code I write I can't share due to contracts, but I've been using so many awesome tools from the open source world that I feel like I need to share and spread awareness to other programmers.\u003cbr\u003e\u003cbr\u003eLabels: \u003ca href\u003d\"http://marcqualie.com/tag/open-source\"\u003eOpen Source\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/random\"\u003eRandom\u003c/a\u003e, \u003ca href\u003d\"http://marcqualie.com/tag/personal\"\u003ePersonal\u003c/a\u003e\u003cbr\u003eSource: \u003ca href\u003d\"http://marcqualie.com/2013/03/new-writing-topics\"\u003ehttp://marcqualie.com/2013/03/new-writing-topics\u003c/a\u003e\u003cimg src\u003d\"http://feeds.feedburner.com/~r/marcqualie/~4/NsovESjzfNM\" height\u003d\"1\" width\u003d\"1\"\u003e","categories":["Open Source","Random","Personal"]}]}}, "responseDetails": null, "responseStatus": 200}
+
+</code>
+</div>
+
+<div id="div-test10"></div>
+
+
+
+
+<div>
+<code id="code-test11">
+["FunctionLiteral", {"name":""}, ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":1} ] ] ], ["IfStatement", ["CompareOperation", {"op":"GT"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":0} ] ], ["Block", ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"y"} ], ["BinaryOperation", {"op":"ADD"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":2} ] ] ] ], ["ExpressionStatement", ["Call", ["VariableProxy", {"name":"print"} ], ["VariableProxy", {"name":"y"} ] ] ] ], ["EmptyStatement"] ] ]
+</code>
+</div>
+
+<div id="div-test11"></div>
+
+
+</body>
+
+</html>

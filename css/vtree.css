@@ -1,0 +1,30 @@
+svg {
+    background: #ffffff;
+    -webkit-box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+    -moz-box-shadow   : 4px 4px 8px rgba(0,0,0,0.5);
+    box-shadow        : 4px 4px 8px rgba(0,0,0,0.5);
+}
+
+
+svg .vtree-node rect {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 2px;
+}
+
+
+svg rect.vtree-dummy-array {
+    fill: steelblue;
+}
+
+
+svg .vtree-node text {
+    font: 14px sans-serif;
+}
+
+
+svg .vtree-link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 2px;
+}

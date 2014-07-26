@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>JSON Tree Visualizer</title>
+
+<!-- stylesheets -->
+<link rel="stylesheet" href="css/vtree.css" type="text/css"/>
+
+<!-- third-party javascript -->
+<script src="js/d3.js"></script>
+<!-- <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+
+<!-- our javascript -->
+<script src="js/vtree.js"></script>
+<!-- <script src="js/vtree.min.js"></script> -->
+
+<script type="text/javascript">
+window.onload = function () {
+    document.getElementById( 'load-json' ).onclick = function () {
+        d3.json( document.getElementById( 'json-url' ).value, function ( error, data ) {
+            if ( error ) {
+                document.getElementById( 'from-text' ).value = error;
+                return;
+            }
+
+            document.getElementById( 'from-text' ).value = JSON.stringify( data );
+        } );
+    };
+
+    document.getElementById( 'visualize-button' ).onclick = function () {
+        var conf = {};
+
+        try {
+            conf[vtree.CONF_MAX_STRING_LEN] = parseInt( document.getElementById( 'max-string-len' ).value );
+        } catch ( err ) {
+        }
+
+        vtree.converts( document.getElementById( 'from-text' ).value, document.getElementById( 'container' ), conf );
+    };
+
+    document.getElementById( 'visualize-button' ).onclick();
+};
+
+</script>
+
+</head>
+
+<body>
+
+<a href="/">Home</a>
+
+<h1>JSON Tree Visualizer</h1>
+
+<p style="text-align: right;">Ver 0.072 <a href="https://github.com/ivan111/vtree">github</a></p>
+
+<p style="color: red;">This software converts JSON strings into tree diagrams. For example, it is used to show you AST(Abstract Syntax Tree) as tree diagrams for debugging. In that case, offcourse, you need to translate AST into JSON.</p>
+
+<p style="color: green;">JSON文字列を木構造の図に変換します。例えば、デバッグのためにAST(抽象構文木)を表示することに使えます。もきろん、その場合には、ASTをJSONに変換する必要があります。</p>
+
+<p style="color: blue;">JSON Фёдор Миха́йлович Достое́вский. Борщ AST(Иван Карамазов) вкусный. Я также хотел пирожки.</p>
+
+
+<div>
+<div>
+<input id="json-url" type="text" size="75" value="http://">
+<input id="load-json" type="button" value="Load JSON">
+</div>
+<textarea id="from-text" rows="8" cols="80">
+{
+  "firstName": "John",
+  "lastName": "Smith",
+  "isAlive": true,
+  "age": 25,
+  "height_cm": 167.6,
+  "address": {
+    "streetAddress": "21 2nd Street",
+    "city": "New York",
+    "state": "NY",
+    "postalCode": "10021-3100"
+  },
+  "phoneNumbers": [
+    {
+      "type": "home",
+      "number": "212 555-1234"
+    },
+    {
+      "type": "office",
+      "number": "646 555-4567"
+    }
+  ]
+}
+</textarea>
+</div>
+
+<div>
+<input id="visualize-button" type="button" value="Visualize">
+<label>max string length: 
+<input id="max-string-len" type="text" size="3" value="32">
+</label>
+</div>
+
+<div id="container"></div>
+
+</body>
+
+</html>
