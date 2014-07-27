@@ -311,7 +311,7 @@ var vtree = (function ()
 
 
     function createNameStr ( name, attrName ) {
-        var s;
+        var s, originalName, isAbbreviated = false;
 
         if ( attrName ) {
             s = [String(), attrName, ' : ', name].join( '' );
@@ -319,7 +319,11 @@ var vtree = (function ()
             s = String() + name;
         }
 
+        originalName = s;
+
         if ( s.length > conf[CONF_MAX_STRING_LEN] ) {
+            isAbbreviated = true;
+
             if ( conf[CONF_SHOW_ELLIPSIS] ) {
                 s = s.substring( 0, conf[CONF_MAX_STRING_LEN] ) + '...';
             } else {
@@ -327,13 +331,13 @@ var vtree = (function ()
             }
         }
 
-        return s;
+        return { name: s, isAbbreviated: isAbbreviated, originalName: originalName };
     }
 
 
 
     function addName ( d, name, val, set ) {
-        var i, s;
+        var i, ret;
 
         i = indexOf.call( set, name );
 
@@ -345,9 +349,10 @@ var vtree = (function ()
             d._vtNameTbl = [];
         }
 
-        s = createNameStr( val );
+        ret = createNameStr( val );
+        d._vtIsAbbreviated = ret.isAbbreviated;
 
-        d._vtNameTbl.push( [name, s] );
+        d._vtNameTbl.push( [name, ret.name] );
     }
 
 
@@ -433,7 +438,7 @@ var vtree = (function ()
 
     function setVtreeName ( d, nameSet, isMultiLinkName )
     {
-        var i, name, attrName, showCaption = true, dummy, args, firstRow;
+        var i, name, attrName, showCaption = true, dummy, args, firstRow, ret;
 
         if ( nameSet.length === 1 ) {
             showCaption = false;
@@ -474,7 +479,10 @@ var vtree = (function ()
                 name = firstRow[1];
             }
 
-            d._vtName = createNameStr( name, attrName );
+            ret = createNameStr( name, attrName );
+
+            d._vtIsAbbreviated = ret.isAbbreviated;
+            d._vtName = ret.name;
         }
 
         if ( d._vtChildren ) {
@@ -572,7 +580,7 @@ var vtree = (function ()
     function vtreeConverts ( text, container, userConf )
     {
         var treeData, width, height,
-            svg, svgGroup, tree, diagonal;
+            svg, svgGroup, tooltip, tree, diagonal;
 
 
         configVtree( userConf );
@@ -652,27 +660,48 @@ var vtree = (function ()
 
 
             nodeEnter.append( 'text' )
-                .text( function ( d ) { return d._vtName; } )
                 .attr( 'y', TEXT_TOP )
                 .attr( 'dy', '.35em' )
                 .attr( 'class', 'vtree-name' )
                 .style( 'fill-opacity', 1 )
                 .each( function ( d ) {
-                    var i, s, tbl, tspan, bbox;
+                    var i, ret, tbl, tspan, bbox;
 
                     tbl = d._vtNameTbl || [];
 
-                    if ( tbl.length > 1 ) {
-                        for ( i = 0; i < tbl.length; i++ ) {
-                            s = createNameStr( tbl[i][1], tbl[i][0] );
+                    for ( i = 0; i < tbl.length; i++ ) {
+                        ret = createNameStr( tbl[i][1], tbl[i][0] );
 
-                            tspan = d3.select( this ).append( 'tspan' )
-                                .text( s )
-                                .attr( 'x', 0 );
+                        tspan = d3.select( this ).append( 'tspan' )
+                            .text( ret.name )
+                            .attr( 'x', 0 );
+                
+                        if ( ret.isAbbreviated )
+                        {
+                            tspan.on( 'mouseover', (function ( originalName )
+                            {
+                                return function ( d ) {
+                                    tooltip.transition()
+                                        .duration( 200 )
+                                        .style( 'opacity', 0.9 );
 
-                            if ( i !== 0 ) {
-                                tspan.attr( 'dy', '1em' );
-                            }
+                                    tooltip.text( originalName )
+                                        .style( 'left', (d3.event.pageX) + 'px')
+                                        .style( 'top',  (d3.event.pageY - 14) + 'px')
+                                };
+                            }( ret.originalName )));
+
+                            tspan.on( 'mouseout', function ( d ) {
+                                tooltip.transition()
+                                    .duration( 500 )
+                                    .style( 'opacity', 0 );
+
+                                tooltip.text( '' )
+                            } );
+                        }
+
+                        if ( i !== 0 ) {
+                            tspan.attr( 'dy', '1em' );
                         }
                     }
 
@@ -767,6 +796,10 @@ var vtree = (function ()
 
         svgGroup = svg.append( 'g' )
             .attr( 'transform', ['translate(' + MARGIN + ',' + MARGIN + ')'].join( '' ) );
+
+        tooltip = d3.select( container ).append( 'div' )
+            .attr( 'class', 'vtree-tooltip' )
+            .style( 'opacity', 0 );
 
         update( treeData );
 
