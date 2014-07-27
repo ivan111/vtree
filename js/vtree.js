@@ -310,19 +310,20 @@ var vtree = (function ()
 
 
 
-    function createNameStr ( name, attrName ) {
-        var s, originalName, isAbbreviated = false;
+    function createNameStr ( nameSet, d ) {
+        var s;
 
-        if ( attrName ) {
-            s = [String(), attrName, ' : ', name].join( '' );
+        if ( nameSet.length <= 1 ) {
+            s = String() + d.val;
+
         } else {
-            s = String() + name;
+            s = [String(), d.name, ' : ', d.val].join( '' );
         }
 
-        originalName = s;
+        d._vtName = s;
 
         if ( s.length > conf[CONF_MAX_STRING_LEN] ) {
-            isAbbreviated = true;
+            d._vtIsAbbreviated = true;
 
             if ( conf[CONF_SHOW_ELLIPSIS] ) {
                 s = s.substring( 0, conf[CONF_MAX_STRING_LEN] ) + '...';
@@ -331,28 +332,25 @@ var vtree = (function ()
             }
         }
 
-        return { name: s, isAbbreviated: isAbbreviated, originalName: originalName };
+        return s;
     }
 
 
 
-    function addName ( d, name, val, set ) {
-        var i, ret;
+    function addName ( d, name, val, nameSet ) {
+        var i;
 
-        i = indexOf.call( set, name );
+        i = indexOf.call( nameSet, name );
 
         if ( i === -1 ) {
-            set.push( name );
+            nameSet.push( name );
         }
 
         if ( ! d._vtNameTbl ) {
             d._vtNameTbl = [];
         }
 
-        ret = createNameStr( val );
-        d._vtIsAbbreviated = ret.isAbbreviated;
-
-        d._vtNameTbl.push( [name, ret.name] );
+        d._vtNameTbl.push( {name: name, val: val} );
     }
 
 
@@ -436,16 +434,11 @@ var vtree = (function ()
 
 
 
-    function setVtreeName ( d, nameSet, isMultiLinkName )
+    function removeDummyArray ( root )
     {
-        var i, name, attrName, showCaption = true, dummy, args, firstRow, ret;
+        traverse( root, function ( d ) {
+            var i, dummy, args;
 
-        if ( nameSet.length === 1 ) {
-            showCaption = false;
-        }
-
-
-        if ( ! isMultiLinkName ) {
             d._vtLinkName = '';
 
             if ( d._vtChildren ) {
@@ -462,41 +455,14 @@ var vtree = (function ()
                     }
                 }
             }
-        }
-
-
-        if ( d._vtNameTbl ) {
-            firstRow = d._vtNameTbl[0];
-
-            name = '';
-
-            if ( showCaption ) {
-                if ( d._vtNameTbl.length === 1 ) {
-                    name = firstRow[1];
-                    attrName = firstRow[0];
-                }
-            } else {
-                name = firstRow[1];
-            }
-
-            ret = createNameStr( name, attrName );
-
-            d._vtIsAbbreviated = ret.isAbbreviated;
-            d._vtName = ret.name;
-        }
-
-        if ( d._vtChildren ) {
-            for ( i = 0; i < d._vtChildren.length; i++ ) {
-                setVtreeName ( d._vtChildren[i], nameSet, isMultiLinkName );
-            }
-        }
+        } );
     }
 
 
 
-    function parseText ( text )
+    function parseText ( text, nameSet, linkNameSet )
     {
-        var data, nameSet, linkNameSet, isMultiLinkName, type;
+        var data, type;
 
         try {
             data = JSON.parse( text );
@@ -534,18 +500,11 @@ var vtree = (function ()
             }
         }
 
-        nameSet = [];
-        linkNameSet = [];
-
         setVtreeInfo ( data, nameSet, linkNameSet );
 
-        isMultiLinkName = false;
-
-        if ( linkNameSet.length > 1 ) {
-            isMultiLinkName = true;
+        if ( linkNameSet.length <= 1 ) {
+            removeDummyArray( data );
         }
-
-        setVtreeName ( data, nameSet, isMultiLinkName );
 
         return data;
     }
@@ -579,16 +538,48 @@ var vtree = (function ()
 
     function vtreeConverts ( text, container, userConf )
     {
-        var treeData, width, height,
+        var treeData, width, height, nameSet, linkNameSet,
             svg, svgGroup, tooltip, tree, diagonal;
 
 
         configVtree( userConf );
 
 
+        function onMouseOver ( d )
+        {
+            if ( ! d._vtIsAbbreviated ) {
+                return;
+            }
+
+            tooltip.transition()
+                .duration( 200 )
+                .style( 'opacity', 0.9 );
+
+            tooltip.text( d._vtName )
+                .style( 'left', (d3.event.pageX) + 'px')
+                .style( 'top',  (d3.event.pageY - 14) + 'px');
+        }
+
+
+
+        function onMouseOut ( d )
+        {
+            if ( ! d._vtIsAbbreviated ) {
+                return;
+            }
+
+            tooltip.transition()
+                .duration( 500 )
+                .style( 'opacity', 0 );
+
+            tooltip.text( '' );
+        }
+
+
+
         function update ( root )
         {
-            var i, nodes, links, node, nodeEnter, link, depthMaxRow = [], curMaxId = 0, lastWidth, lastHeight;
+            var i, nodes, links, node, nodeEnter, nodeName, link, depthMaxRow = [], curMaxId = 0, lastWidth, lastHeight;
 
             nodes = tree.nodes( root ).reverse();
             links = tree.links( nodes );
@@ -640,93 +631,68 @@ var vtree = (function ()
 
 
             nodeEnter = node.enter().append( 'g' )
-                .attr( 'class', 'vtree-node' )
+                .attr( 'class', 'vtree-node' );
+
+
+            // link name
+            nodeEnter.append( 'text' )
+                .text( function ( d ) { return d._vtLinkName || ''; } )
+                .style( 'fill-opacity', 1 )
+                .attr( 'y', -4 )
+                .attr( 'text-anchor', 'middle' )
                 .each( function ( d ) {
-                    d._vtLinkName = d._vtLinkName || '';
-
-                    d3.select( this ).append( 'text' )
-                        .text( d._vtLinkName )
-                        .style( 'fill-opacity', 1 )
-                        .attr( 'y', -4 )
-                        .attr( 'text-anchor', 'middle' )
-                        .each( function ( d ) {
-                            d._vtCaptionWidth = this.getBBox().width + RECT_MARGIN * 2;
-                        } );
-
+                    d._vtCaptionWidth = this.getBBox().width + RECT_MARGIN * 2;
                 } );
 
 
             nodeEnter.append( 'rect' );
 
 
-            nodeEnter.append( 'text' )
+            // name
+            nodeName = nodeEnter.append( 'text' )
                 .attr( 'y', TEXT_TOP )
                 .attr( 'dy', '.35em' )
                 .attr( 'class', 'vtree-name' )
-                .style( 'fill-opacity', 1 )
+                .style( 'fill-opacity', 1 );
+
+
+            // name list
+            nodeName.selectAll( 'tspan' )
+                .data( function ( d ) { return d._vtNameTbl || []; } )
+                .enter()
+                .append( 'tspan' )
+                .text( function ( d ) {
+                    return createNameStr( nameSet, d );
+                } )
+                .attr( 'x', 0 )
+                .attr( 'dy', function ( d, i ) { if ( i !== 0 ) { return '1em'; } } )
+                .on( 'mouseover', onMouseOver )
+                .on( 'mouseout', onMouseOut );
+
+
+            nodeName
                 .each( function ( d ) {
-                    var i, ret, tbl, tspan, bbox;
-
-                    tbl = d._vtNameTbl || [];
-
-                    for ( i = 0; i < tbl.length; i++ ) {
-                        ret = createNameStr( tbl[i][1], tbl[i][0] );
-
-                        tspan = d3.select( this ).append( 'tspan' )
-                            .text( ret.name )
-                            .attr( 'x', 0 );
-                
-                        if ( ret.isAbbreviated )
-                        {
-                            tspan.on( 'mouseover', (function ( originalName )
-                            {
-                                return function ( d ) {
-                                    tooltip.transition()
-                                        .duration( 200 )
-                                        .style( 'opacity', 0.9 );
-
-                                    tooltip.text( originalName )
-                                        .style( 'left', (d3.event.pageX) + 'px')
-                                        .style( 'top',  (d3.event.pageY - 14) + 'px')
-                                };
-                            }( ret.originalName )));
-
-                            tspan.on( 'mouseout', function ( d ) {
-                                tooltip.transition()
-                                    .duration( 500 )
-                                    .style( 'opacity', 0 );
-
-                                tooltip.text( '' )
-                            } );
-                        }
-
-                        if ( i !== 0 ) {
-                            tspan.attr( 'dy', '1em' );
-                        }
-                    }
-
-                    bbox = this.getBBox();
+                    var bbox = this.getBBox();
 
                     d._vtNameWidth = bbox.width + RECT_MARGIN * 2;
 
-                    if ( ! d._vtCaptionWidth ) {
-                        d._vtWidth = d._vtNameWidth;
-                    } else {
+                    if ( d._vtCaptionWidth ) {
                         d._vtWidth = Math.max( d._vtCaptionWidth, d._vtNameWidth );
+                    } else {
+                        d._vtWidth = d._vtNameWidth;
                     }
 
                     d._vtHeight = bbox.height + RECT_MARGIN * 2;
+                } )
+                .attr( 'x', function ( d ) { return -d._vtNameWidth / 2 + 4; } );
+
+
+            nodeName.selectAll( 'tspan' )
+                .attr( 'x', function () {
+                    var parent = this.parentNode.__data__;
+
+                    return -parent._vtNameWidth / 2 + 4;
                 } );
-
-
-            nodeEnter.selectAll( 'text.vtree-name' )
-                .attr ( 'x', function ( d ) {
-                    return -d._vtNameWidth / 2 + 4;
-                } );
-
-
-            nodeEnter.selectAll( 'tspan' )
-                .attr ( 'x', function ( d ) { return -d._vtNameWidth / 2 + 4; } );
 
 
             lastWidth = calcNodePos( treeData );
@@ -741,20 +707,12 @@ var vtree = (function ()
             nodeEnter.select( 'rect' )
                 .attr( 'x', function ( d ) { return -d._vtNameWidth / 2; } )
                 .attr( 'width', function ( d ) { return d._vtNameWidth; } )
-                .attr( 'height', function ( d ) {
-                    if ( d._vtIsDummy ) {
-                        d3.select( this ).attr( 'class', 'vtree-dummy-array' )
-                            .attr( 'rx', 10 )
-                            .attr( 'ry', 10 );
-                    }
-
-                    return d._vtHeight;
-                } )
-                .style( 'fill', function ( d ) {
-                    if ( d._vtColor ) {
-                        return d._vtColor;
-                    }
-                } );
+                .attr( 'height', function ( d ) { return d._vtHeight; } )
+                .style( 'fill', function ( d ) { return d._vtColor; } )
+                .filter( function ( d ) { return d._vtIsDummy; } )
+                    .attr( 'class', 'vtree-dummy-array' )
+                    .attr( 'rx', 10 )
+                    .attr( 'ry', 10 );
 
 
             link = svgGroup.selectAll( 'path.vtree-link' )
@@ -772,7 +730,10 @@ var vtree = (function ()
 
         container.innerHTML = '';
 
-        treeData = parseText( text );
+        nameSet = [];
+        linkNameSet = [];
+
+        treeData = parseText( text, nameSet, linkNameSet );
 
         if ( ! treeData ) {
             container.innerHTML = '<p>Parse Error</p>';
