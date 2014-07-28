@@ -19,6 +19,8 @@ var vtree = (function ()
         NODE_MARGIN = 6,
         RECT_MARGIN = 4,
 
+        RE_URL = /^\s*https?:\/\/[^\s<>]+\s*$/,
+
         DEFAULT_MAX_STRING_LEN = 32,
 
         CONF_MAX_STRING_LEN = 'max_string_len',
@@ -648,10 +650,20 @@ var vtree = (function ()
                     return d.val;
                 } )
                 .each( function ( d, i ) {
+                    var this3 = d3.select( this );
+
                     if ( i === 0 ) {
-                        d3.select( this ).attr( 'class', 'vtree-name-cell' );
+                        this3.attr( 'class', 'vtree-name-cell' );
                     } else if ( i === 1 ) {
-                        d3.select( this ).attr( 'class', 'vtree-val-cell' );
+                        this3.attr( 'class', 'vtree-val-cell' );
+                    }
+
+                    if ( d.val === "http://www.stack.com/" ) {
+                        a = 0;
+                    }
+
+                    if ( RE_URL.test( d.val ) ) {
+                        this3.html( ['<a href="', d.val, '">', this3.text(), '</a>'].join( '' ) );
                     }
                 } )
                 .filter( function ( d ) { return d._vtIsAbbreviated; } )
