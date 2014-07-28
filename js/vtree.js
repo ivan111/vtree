@@ -22,9 +22,11 @@ var vtree = (function ()
         RE_URL = /^\s*https?:\/\/[^\s<>]+\s*$/,
 
         DEFAULT_MAX_STRING_LEN = 32,
+        DEFAULT_FONT_SIZE = 14,
 
         CONF_MAX_STRING_LEN = 'max_string_len',
         CONF_SHOW_ELLIPSIS = 'show_ellipsis',
+        CONF_FONT_SIZE = 'font_size',
 
         indexOf,
 
@@ -537,6 +539,18 @@ var vtree = (function ()
         }
 
 
+        v = newConf[CONF_FONT_SIZE];
+
+        if ( v && typeof v === 'number' ) {
+            v = Math.max( v, 9 );
+            v = Math.min( v, 32 );
+
+            conf[CONF_FONT_SIZE] = v;
+        } else {
+            conf[CONF_FONT_SIZE] = DEFAULT_FONT_SIZE;
+        }
+
+
         if ( newConf[CONF_SHOW_ELLIPSIS] ) {
             conf[CONF_SHOW_ELLIPSIS] = true;
         } else {
@@ -548,7 +562,7 @@ var vtree = (function ()
 
     function vtreeConverts ( text, container, userConf )
     {
-        var treeData, width, height, nameSet, linkNameSet, svgRect,
+        var treeData, width, height, nameSet, linkNameSet, svgLeft, svgTop,
             container3, svg, svgGroup, tooltip, tree, diagonal;
 
 
@@ -563,8 +577,8 @@ var vtree = (function ()
 
 
             tooltip.text( d._vtName )
-                .style( 'left', (d3.event.pageX - svgRect.left) + 'px')
-                .style( 'top',  (d3.event.pageY - svgRect.top - 14) + 'px');
+                .style( 'left', (d3.event.pageX - svgLeft) + 'px')
+                .style( 'top',  (d3.event.pageY - svgTop - 14) + 'px');
         }
 
 
@@ -613,7 +627,7 @@ var vtree = (function ()
             nodeEnter.append( 'text' )
                 .text( function ( d ) { return d._vtLinkName || ''; } )
                 .style( 'fill-opacity', 1 )
-                .attr( 'y', -4 )
+                .attr( 'y', -conf[CONF_FONT_SIZE] / 3 )
                 .attr( 'text-anchor', 'middle' )
                 .each( function ( d ) {
                     d._vtCaptionWidth = this.getBBox().width + RECT_MARGIN * 2;
@@ -658,10 +672,6 @@ var vtree = (function ()
                         this3.attr( 'class', 'vtree-val-cell' );
                     }
 
-                    if ( d.val === "http://www.stack.com/" ) {
-                        a = 0;
-                    }
-
                     if ( RE_URL.test( d.val ) ) {
                         this3.html( ['<a href="', d.val, '">', this3.text(), '</a>'].join( '' ) );
                     }
@@ -675,6 +685,19 @@ var vtree = (function ()
                 rows.selectAll( '.vtree-name-cell' )
                     .style( 'display', 'none' );
             }
+
+
+            if ( conf[CONF_FONT_SIZE] !== DEFAULT_FONT_SIZE )
+            {
+                nodeEnter.selectAll( 'text' )
+                    .style( 'font-size', conf[CONF_FONT_SIZE] + 'px' );
+
+                tables
+                    .style( 'font-size', conf[CONF_FONT_SIZE] + 'px' )
+                    .selectAll( 'td' )
+                        .style( 'padding', (conf[CONF_FONT_SIZE] / 5) + 'px' );
+            }
+
 
             tooltip = container3.append( 'div' )
                 .attr( 'class', 'vtree-tooltip' )
@@ -713,7 +736,7 @@ var vtree = (function ()
                     extY += depthMaxHeight[i];
                 }
 
-                d.y = extY + (d.depth * 50);
+                d.y = extY + (d.depth * (conf[CONF_FONT_SIZE] * 5));
             } );
 
 
@@ -734,7 +757,7 @@ var vtree = (function ()
                 lastHeight += depthMaxHeight[i];
             }
 
-            lastHeight += MARGIN * 2 + (depthMaxHeight.length - 1) * 50 + 10;
+            lastHeight += MARGIN * 2 + (depthMaxHeight.length - 1) * (conf[CONF_FONT_SIZE] * 5);
 
 
             tables
@@ -760,7 +783,9 @@ var vtree = (function ()
         }
 
 
-        container.innerHTML = '';
+        container3 = d3.select( container );
+
+        container3.text( '' );
 
         nameSet = [];
         linkNameSet = [];
@@ -768,7 +793,7 @@ var vtree = (function ()
         treeData = parseText( text, nameSet, linkNameSet );
 
         if ( ! treeData ) {
-            container.innerHTML = '<p>Parse Error</p>';
+            container3.text( 'Parse Error' );
             return;
         }
 
@@ -781,10 +806,8 @@ var vtree = (function ()
             } );
 
         diagonal = d3.svg.diagonal()
-            .projection( function(d) { return [d.x, d.y]; } );
+            .projection( function( d ) { return [d.x, d.y]; } );
 
-
-        container3 = d3.select( container );
 
         container3.style( 'position', 'relative' );
 
@@ -796,11 +819,11 @@ var vtree = (function ()
             .attr( 'transform', ['translate(' + MARGIN + ',' + MARGIN + ')'].join( '' ) );
 
 
-        svgRect = container.getBoundingClientRect();
+        svgLeft = container.getBoundingClientRect().left;
+        svgTop  = container.getBoundingClientRect().top;
+
 
         update( treeData );
-
-
     }
 
 
@@ -808,7 +831,8 @@ var vtree = (function ()
         converts: vtreeConverts,
 
         CONF_MAX_STRING_LEN: CONF_MAX_STRING_LEN,
-        CONF_SHOW_ELLIPSIS: CONF_SHOW_ELLIPSIS
+        CONF_SHOW_ELLIPSIS: CONF_SHOW_ELLIPSIS,
+        CONF_FONT_SIZE: CONF_FONT_SIZE
     };
 }());
 
