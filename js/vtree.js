@@ -559,9 +559,10 @@ var vtree = (function ()
                 .duration( 200 )
                 .style( 'opacity', 0.9 );
 
+
             tooltip.text( d._vtName )
-                .style( 'left', (d3.event.pageX) + 'px')
-                .style( 'top',  (d3.event.pageY - 14) + 'px');
+                .style( 'left', (d3.event.pageX - svgRect.left) + 'px')
+                .style( 'top',  (d3.event.pageY - svgRect.top - 14) + 'px');
         }
 
 
@@ -727,10 +728,10 @@ var vtree = (function ()
             tables
                 .attr( 'left', function ( d ) { return -d._vtNameWidth / 2; } )
                 .style( 'left', function ( d ) {
-                    return (svgRect.left + MARGIN + d.x - d._vtNameWidth / 2) + 'px';
+                    return (MARGIN + d.x - d._vtNameWidth / 2) + 'px';
                 } )
                 .style( 'top',  function ( d ) {
-                    return (svgRect.top + MARGIN + d.y) + 'px';
+                    return (MARGIN + d.y) + 'px';
                 } );
 
 
@@ -773,6 +774,7 @@ var vtree = (function ()
 
         container3 = d3.select( container );
 
+        container3.style( 'position', 'relative' );
 
         svg = container3.append( 'svg' )
             .attr( 'width', width + MARGIN * 2 )
