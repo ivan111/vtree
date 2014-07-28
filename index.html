@@ -53,7 +53,7 @@ window.onload = function () {
 
 <h1>JSON Tree Visualizer</h1>
 
-<p style="text-align: right;">Ver 0.0721 <a href="https://github.com/ivan111/vtree">github</a></p>
+<p style="text-align: right;">Ver 0.0722 <a href="https://github.com/ivan111/vtree">github</a></p>
 
 <p style="color: red;">This software converts JSON strings into tree diagrams. For example, it is used to show you AST(Abstract Syntax Tree) as tree diagrams for debugging. In that case, offcourse, you need to translate AST into JSON.</p>
 
@@ -97,7 +97,7 @@ window.onload = function () {
 <div>
 <input id="visualize-button" type="button" value="Visualize">
 <label>max string length: 
-<input id="max-string-len" type="text" size="3" value="32">
+<input id="max-string-len" type="number" min="1" max="256" step="10" size="3" value="32">
 </label>
 </div>
 

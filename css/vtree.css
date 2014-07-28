@@ -6,19 +6,8 @@ svg {
 }
 
 
-svg .vtree-node rect {
-    fill: #fff;
-    stroke: steelblue;
-    stroke-width: 2px;
-}
-
-
-svg rect.vtree-dummy-array {
-    fill: steelblue;
-}
-
-
-svg .vtree-node text {
+svg .vtree-node text,
+table.vtree-table {
     font: 14px sans-serif;
 }
 
@@ -29,6 +18,26 @@ svg .vtree-link {
     stroke-width: 2px;
 }
 
+
+table.vtree-table,
+table.vtree-table th,
+table.vtree-table td {
+    border: 2px solid steelblue;
+    background-color: white;
+}
+
+
+table.vtree-table {
+    position: absolute;
+    border-spacing: 0.5em;
+    border-collapse: collapse;
+}
+
+
+table.vtree-table th,
+table.vtree-table td {
+    padding: 2px;
+}
 
 .vtree-tooltip {
     position: absolute;
