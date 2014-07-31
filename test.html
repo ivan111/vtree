@@ -12,14 +12,16 @@
 <script src="js/d3.js"></script>
 
 <!-- our javascript -->
+<script src="js/layout.vtree.js"></script>
 <script src="js/vtree.js"></script>
 
 <script type="text/javascript">
 window.onload = function () {
-    var i, NUM_TEST = 12;
+    var i, vt, NUM_TEST = 12;
 
     for ( i = 0; i < NUM_TEST; i++ ) {
-        vtree.converts( document.getElementById( 'code-test' + i ).innerHTML, document.getElementById( 'div-test' + i ) );
+        vt = vtree( document.getElementById( 'code-test' + i ).innerHTML, document.getElementById( 'div-test' + i ) );
+        vt.update();
     }
 };
 

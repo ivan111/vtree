@@ -13,24 +13,11 @@
 
 var vtree = (function ()
 {
-    var DEFAULT_WIDTH = 100,
-        DEFAULT_HEIGHT = 100,
+    var WIDTH = 960,
+        HEIGHT = 800,
         MARGIN = 20,
-        NODE_MARGIN = 6,
-        RECT_MARGIN = 4,
 
-        RE_URL = /^\s*https?:\/\/[^\s<>]+\s*$/,
-
-        DEFAULT_MAX_STRING_LEN = 32,
-        DEFAULT_FONT_SIZE = 14,
-
-        CONF_MAX_STRING_LEN = 'max_string_len',
-        CONF_SHOW_ELLIPSIS = 'show_ellipsis',
-        CONF_FONT_SIZE = 'font_size',
-
-        indexOf,
-
-        conf = {};
+        RE_URL = /^\s*https?:\/\/[^\s<>]+\s*$/;
 
 
 
@@ -45,319 +32,7 @@ var vtree = (function ()
 
 
 
-    indexOf = function ( needle )
-    {
-        var indexOf;
-
-        if ( typeof Array.prototype.indexOf === 'function' ) {
-            indexOf = Array.prototype.indexOf;
-        } else {
-            indexOf = function ( needle )
-            {
-                var i = -1, index = -1;
-
-                for ( i = 0; i < this.length; i++ ) {
-                    if ( this[i] === needle ) {
-                        index = i;
-                        break;
-                    }
-                }
-
-                return index;
-            };
-        }
-
-        return indexOf.call( this, needle );
-    };
-
-
-
-    // depth-first traversal
-    function traverse ( d, f )
-    {
-        var i;
-
-        if ( d._vtChildren ) {
-            for ( i = 0; i < d._vtChildren.length; i++ ) {
-                traverse( d._vtChildren[i], f );
-            }
-        }
-
-        f( d );
-    }
-
-
-
-    function breadthFirstTraverse ( d, f )
-    {
-        var i, q = [ d ], data;
-
-        while ( q.length )
-        {
-            data = q.shift();
-
-            f( data );
-
-            if ( data._vtChildren ) {
-                for ( i = 0; i < data._vtChildren.length; i++ ) {
-                    q.push( data._vtChildren[i] );
-                }
-            }
-        }
-    }
-
-
-
-    function tree2array( root, f )
-    {
-        var a = [];
-
-        if ( ! f ) {
-            f = function ( d ) { return d; };
-        }
-
-        breadthFirstTraverse( root, function ( d ) {
-            a.push( f( d ) );
-        } );
-
-        return a;
-    }
-
-
-
-    function updateArea( areas, depth, left, right )
-    {
-        if ( areas[depth] === undefined ) {
-            areas[depth] = { left: 0, right: 0 };
-        }
-
-        if ( left < areas[depth].left ) {
-            areas[depth].left = left;
-        }
-
-        if ( right > areas[depth].right ) {
-            areas[depth].right = right;
-        }
-    }
-
-
-
-    function calcOverlap ( children )
-    {
-        var i, j, k, w, overlap = [], a1, a2, relX1, relX2, len, ol, maxOverlapWidth;
-
-        for ( i = 0; i < children.length - 1; i++ ) {
-            overlap[i] = 0;
-        }
-
-        for ( i = 0; i < children.length; i++ ) {
-            for ( j = i + 1; j < children.length; j++ ) {
-                a1 = children[i]._vtAreas;
-                a2 = children[j]._vtAreas;
-
-                relX1 = children[i].relX;
-                relX2 = children[j].relX;
-
-                len = Math.min( a1.length, a2.length );
-
-                maxOverlapWidth = 0;
-
-                for ( k = 0; k < len; k++ ) {
-                    if ( a1[k] === undefined || a2[k] === undefined ) {
-                        break;
-                    }
-
-                    ol = (relX1 + a1[k].right) - (relX2 + a2[k].left);
-
-                    if ( ol > 0 && ol > maxOverlapWidth ) {
-                        maxOverlapWidth = ol;
-                    }
-                }
-
-                for ( k = i; k < j; k++ ) {
-                    maxOverlapWidth -= overlap[k];
-                }
-
-                if ( maxOverlapWidth <= 0 ) {
-                    continue;
-                }
-
-                w = maxOverlapWidth / (j-i);
-
-                for ( k = i; k < j; k++ ) {
-                    overlap[k] += w;
-                }
-            }
-        }
-
-        return overlap;
-    }
-
-
-
-    function calcRange ( root )
-    {
-        var minLeft = 0, maxRight = 0, left, right, w2;
-
-        if ( ! root._vtChildren ) {
-            w2 = root._vtWidthSum / 2;
-            return [-w2, w2];
-        }
-
-        breadthFirstTraverse( root, function ( d ) {
-            if ( d.parent ) {
-                d.x = d.parent.x + d.relX;
-
-                w2 = d._vtWidth / 2;
-                left = d.x - w2;
-                right = d.x + w2;
-
-                if ( left < minLeft ) {
-                    minLeft = left;
-                }
-
-                if ( right > maxRight ) {
-                    maxRight = right;
-                }
-            } else {
-                d.x = 0;
-            }
-        } );
-
-        return [minLeft, maxRight];
-    }
-
-
-
-    function mergeAreas( children )
-    {
-        var areas = [], i, k, sum = 0, w2, overlap = [], sumOverlap, ol, a1, relX1;
-
-        // calc width sum
-        for ( i = 0; i < children.length; i++ ) {
-            children[i].relX = NODE_MARGIN + sum + children[i]._vtWidth / 2;
-            sum += children[i]._vtWidth + NODE_MARGIN * 2;
-        }
-
-        overlap = calcOverlap( children );
-        if ( overlap.length === 0 ) {
-            sumOverlap = 0;
-        } else {
-            sumOverlap = overlap.reduce( function ( prev, cur ) {
-                return prev+ cur;
-            } );
-        }
-
-        // update relX
-        if ( sumOverlap !== 0 )
-        {
-            sum = 0;
-
-            for ( i = 0; i < children.length; i++ ) {
-                children[i].relX = NODE_MARGIN + sum + children[i]._vtWidth / 2;
-
-                if ( i < children.length - 1 ) {
-                    ol = overlap[i];
-                } else {
-                    ol = 0;
-                }
-
-                sum += children[i]._vtWidth + ol + NODE_MARGIN * 2;
-            }
-        }
-
-        w2 = sum / 2;
-
-        for ( i = 0; i < children.length; i++ ) {
-            children[i].relX -= w2;
-        }
-
-
-        // create areas
-        for ( i = 0; i < children.length; i++ ) {
-            a1 = children[i]._vtAreas;
-            relX1 = children[i].relX;
-
-            for ( k = 0; k < a1.length; k++ ) {
-                updateArea( areas, k + 1, relX1 + a1[k].left, relX1 + a1[k].right );
-            }
-        }
-
-        areas[0] = { left: -w2, right: w2 };
-
-        return areas;
-    }
-
-
-
-    function calcNodePos ( d )
-    {
-        var rng, width;
-
-        traverse( d, function ( d ) {
-            var i, sum = 0, areas;
-
-            if ( d._vtChildren && d._vtChildren.length !== 0 ) {
-                for ( i = 0; i < d._vtChildren.length; i++) {
-                    sum += d._vtChildren[i]._vtWidthSum;
-                }
-
-                areas = mergeAreas( d._vtChildren );
-            } else {
-                sum = d._vtWidth + NODE_MARGIN * 2;
-                areas = [];
-            }
-
-            d._vtWidthSum = sum;
-            d._vtAreas = areas;
-        } );
-
-
-        rng = calcRange( d );
-        width = rng[1] - rng[0];
-
-        breadthFirstTraverse( d, function ( d ) {
-            if ( d.parent ) {
-                d.x = d.parent.x + d.relX;
-            } else {
-                d.x = -rng[0];
-            }
-        } );
-
-        return width;
-    }
-
-
-
-    function createValStr ( d ) {
-        var s = String() + d.val;
-
-        d._vtName = s;
-
-        if ( s.length > conf[CONF_MAX_STRING_LEN] ) {
-            d._vtIsAbbreviated = true;
-
-            if ( conf[CONF_SHOW_ELLIPSIS] ) {
-                s = s.substring( 0, conf[CONF_MAX_STRING_LEN] ) + '...';
-            } else {
-                s = s.substring( 0, conf[CONF_MAX_STRING_LEN] );
-            }
-        }
-
-        return s;
-    }
-
-
-
-    function addName ( d, name, val, nameSet ) {
-        var i;
-
-        i = indexOf.call( nameSet, name );
-
-        if ( i === -1 ) {
-            nameSet.push( name );
-        }
-
+    function addName ( d, name, val ) {
         if ( ! d._vtNameTbl ) {
             d._vtNameTbl = [];
         }
@@ -367,16 +42,8 @@ var vtree = (function ()
 
 
 
-    function setLinkName ( d, name, index, set ) {
-        var i;
-
-        i = indexOf.call( set, name );
-
-        if ( i === -1 ) {
-            set.push( name );
-        }
-
-        if ( index !== undefined && index !== null ) {
+    function setLinkName ( d, name, index ) {
+        if ( index || index === 0 ) {
             name = ['[', index, ']'].join( '' );
         }
 
@@ -385,20 +52,20 @@ var vtree = (function ()
 
 
 
-    function addChildNode ( d, name, child, index, linkNameSet )
+    function addChildNode ( d, name, child, index )
     {
         if ( ! d._vtChildren ) {
             d._vtChildren = [];
         }
 
-        setLinkName( child, name, index, linkNameSet );
+        setLinkName( child, name, index );
 
         d._vtChildren.push( child );
     }
 
 
 
-    function setVtreeInfo ( d, nameSet, linkNameSet )
+    function setVtreeInfo ( d )
     {
         var i, name, data, item, type, dummy;
 
@@ -424,57 +91,35 @@ var vtree = (function ()
                             item = { name: item };
                         }
 
-                        addChildNode( d, name, item, i, linkNameSet );
-                        setVtreeInfo( item, nameSet, linkNameSet );
+                        item._vtIsArrayItem = true;
+                        item._vtArrayName = name;
+                        item._vtArrayIndex = i;
+
+                        addChildNode( d, name, item, i );
+                        setVtreeInfo( item );
                     }
                 } else {
                     dummy = {};
                     dummy._vtIsDummy = true;
                     dummy[name] = data;
 
-                    addChildNode( d, name, dummy, null, linkNameSet );
-                    setVtreeInfo( dummy, nameSet, linkNameSet );
+                    addChildNode( d, [name, '[', data.length, ']'].join( '' ), dummy, null );
+                    setVtreeInfo( dummy );
                 }
             } else if ( data !== null && typeof data === 'object' ) {
-                addChildNode( d, name, data, null, linkNameSet );
-                setVtreeInfo( data, nameSet, linkNameSet );
+                addChildNode( d, name, data, null );
+                setVtreeInfo( data );
             } else {
-                addName( d, name, data, nameSet );
+                addName( d, name, data );
             }
         }
     }
 
 
 
-    function removeDummyArray ( root )
+    function str2json ( text )
     {
-        traverse( root, function ( d ) {
-            var i, dummy, args;
-
-            d._vtLinkName = '';
-
-            if ( d._vtChildren ) {
-                for ( i = d._vtChildren.length - 1; i >= 0; i-- ) {
-                    if ( d._vtChildren[i]._vtIsDummy ) {
-                        dummy = d._vtChildren[i];
-
-                        if ( dummy._vtChildren ) {
-                            args = [i, 1];
-                            args = args.concat( dummy._vtChildren );
-
-                            Array.prototype.splice.apply( d._vtChildren, args );
-                        }
-                    }
-                }
-            }
-        } );
-    }
-
-
-
-    function parseText ( text, nameSet, linkNameSet )
-    {
-        var data, type;
+        var data;
 
         try {
             data = JSON.parse( text );
@@ -500,339 +145,902 @@ var vtree = (function ()
             }
         }
 
-        type = typeof data;
-
-        if ( data === null || type === 'string' || type === 'number' || type === 'boolean' ) {
-            data = { name: data };
-        } else if ( isArray( data ) ) {
-            if ( data.length === 1 ) {
-                data = data[0];
-            } else {
-                data = { name: '/', children: data };
-            }
-        }
-
-        setVtreeInfo ( data, nameSet, linkNameSet );
-
-        if ( linkNameSet.length <= 1 ) {
-            removeDummyArray( data );
-        }
-
         return data;
     }
 
 
 
-    function configVtree ( newConf )
+    function createZoomFunc ( vt )
     {
-        var v;
+        return function ()
+        {
+            var transform = ['translate(', d3.event.translate, ')scale(', d3.event.scale, ')'].join ( '' );
 
-        newConf = newConf || {};
-
-
-        v = newConf[CONF_MAX_STRING_LEN];
-
-        if ( v && typeof v === 'number' && v >= 1 ) {
-            conf[CONF_MAX_STRING_LEN] = v;
-        } else {
-            conf[CONF_MAX_STRING_LEN] = DEFAULT_MAX_STRING_LEN;
-        }
-
-
-        v = newConf[CONF_FONT_SIZE];
-
-        if ( v && typeof v === 'number' ) {
-            v = Math.max( v, 9 );
-            v = Math.min( v, 32 );
-
-            conf[CONF_FONT_SIZE] = v;
-        } else {
-            conf[CONF_FONT_SIZE] = DEFAULT_FONT_SIZE;
-        }
-
-
-        if ( newConf[CONF_SHOW_ELLIPSIS] ) {
-            conf[CONF_SHOW_ELLIPSIS] = true;
-        } else {
-            conf[CONF_SHOW_ELLIPSIS] = false;
-        }
+            vt.d3.g.attr( 'transform', transform );
+        };
     }
 
 
 
-    function vtreeConverts ( text, container, userConf )
+    function createChildrenFunc ( vt )
     {
-        var treeData, width, height, nameSet, linkNameSet, svgLeft, svgTop,
-            container3, svg, svgGroup, tooltip, tree, diagonal;
-
-
-        configVtree( userConf );
-
-
-        function onMouseOver ( d )
+        return function ( d )
         {
-            tooltip.transition()
+            var i, children = null, args;
+
+            if ( d._vtChildren && d._vtChildren.len !== 0 )
+            {
+                if ( vt._conf.showArrayNode ) {
+                    children = d._vtChildren;
+                } else {
+                    children = d._vtChildren.slice( 0 );  // copy
+
+                    for ( i = children.length - 1; i >= 0; i-- )
+                    {
+                        if ( children[i]._vtIsDummy )
+                        {
+                            args = [i, 1];
+
+                            if ( children[i]._vtChildren ) {
+                                args = args.concat( children[i]._vtChildren );
+                            } else if ( children[i]._vtHiddenChildren) {
+                                args = args.concat( children[i]._vtHiddenChildren );
+                            }
+
+                            children.splice.apply( children, args );
+                        }
+                    }
+
+                    if ( children.length === 0 ) {
+                        children = null;
+                    }
+                }
+            }
+
+            return children;
+        };
+    }
+
+
+
+    function createSeparationFunc ( vt )
+    {
+        return function ( a, b )
+        {
+            if ( a.parent !== b.parent ) {
+                return vt._conf.nodeMargin << 2;
+            }
+
+            return vt._conf.nodeMargin;
+        };
+    }
+
+
+
+    function createHSeparationFunc ( vt )
+    {
+        return function ( depth )
+        {
+            return depth * (vt._conf.fontSize * 5);
+        };
+    }
+
+
+
+    function createLinkNameStr ( vt, d )
+    {
+        var s;
+
+        if ( ! vt._conf.showArrayNode && d._vtIsArrayItem ) {
+            s = [d._vtArrayName, '[', d._vtArrayIndex, ']'].join( '' );
+        } else {
+            s = d._vtLinkName || '';
+        }
+
+        if ( s.length > vt._conf.maxNameLen ) {
+            s = s.substring( 0, vt._conf.maxNameLen );
+
+            if ( vt._conf.showEllipsis ) {
+                s += '...';
+            }
+        }
+
+        return s;
+    }
+
+
+
+    function createTableStr ( s, maxLen, showEllipsis )
+    {
+        s = s || '';
+
+        if ( s.length > maxLen ) {
+            s = s.substring( 0, maxLen );
+
+            if ( showEllipsis ) {
+                s += '...';
+            }
+        }
+
+        return s;
+    }
+
+
+
+    function calcLinkNameWidth ( vt, d )
+    {
+        var s, w;
+
+        s = createLinkNameStr( vt, d );
+
+        vt.d3.ruler.text( s );
+        w = vt.d3.ruler[0][0].offsetWidth;
+        vt.d3.ruler.text( '' );
+
+        return w;
+    }
+
+
+
+    function calcMaxColumnWidth ( vt, tbl, col )
+    {
+        var i, w, maxW, name, maxLen;
+
+        if ( ! tbl || tbl.length === 0 ) {
+            return 0;
+        }
+
+        maxW = vt._conf.fontSize / 2;
+
+        if ( col === 0 ) {
+            maxLen = vt._conf.maxNameLen;
+        } else {
+            maxLen = vt._conf.maxValueLen;
+        }
+
+        for ( i = 0; i < tbl.length; i++ )
+        {
+            name = tbl[i][col].val;
+            name = createTableStr( name, maxLen, vt._conf.showEllipsis );
+
+            vt.d3.ruler.text( name );
+            w = vt.d3.ruler[0][0].offsetWidth;
+
+            if ( w > maxW ) {
+                maxW = w;
+            }
+        }
+
+        vt.d3.ruler.text( '' );
+
+        return maxW + (vt._conf.td_padding * 2);
+    }
+
+
+
+    function createNodeSizeFunc ( vt )
+    {
+        return function ( d )
+        {
+            var maxW, sumH, fontSize,
+                maxNameW = 0, maxValW = 0, pad, linkNameW = 0, tbl;
+
+            fontSize = vt._conf.fontSize;
+            pad = vt._conf.td_padding;
+
+            if ( d._vtLinkName && vt._conf.showLinkName ) {
+                linkNameW = calcLinkNameWidth( vt, d );
+            }
+
+            tbl = d._vtNameTbl;
+
+            if ( ! tbl || tbl.length === 0 )
+            {
+                maxW = fontSize + pad * 2;
+                sumH = fontSize + pad * 2;
+            }
+            else
+            {
+                if ( vt._conf.showColumn[0] ) {
+                    maxNameW = calcMaxColumnWidth( vt, tbl, 0 );
+                }
+
+                if ( vt._conf.showColumn[1] ) {
+                    maxValW = calcMaxColumnWidth( vt, tbl, 1 );
+                }
+
+                maxW = maxNameW + maxValW;
+                sumH = (fontSize + pad * 2) * tbl.length;
+            }
+
+            d._vtWidth = maxW;
+
+            if ( linkNameW > maxW ) {
+                maxW = linkNameW;
+            }
+
+            return [maxW, sumH];
+        };
+    }
+
+
+    function createTooltipOnMouseOverFunc ( vt )
+    {
+        return function ( d )
+        {
+            vt.d3.tooltip.transition()
                 .duration( 200 )
                 .style( 'opacity', 0.9 );
 
-
-            tooltip.text( d._vtName )
-                .style( 'left', (d3.event.pageX - svgLeft) + 'px')
-                .style( 'top',  (d3.event.pageY - svgTop - 14) + 'px');
-        }
-
-
-
-        function onMouseOut ( d )
-        {
-            if ( ! d._vtIsAbbreviated ) {
-                return;
-            }
-
-            tooltip.transition()
-                .duration( 500 )
-                .style( 'opacity', 0 );
-
-            tooltip.text( '' );
-        }
-
-
-
-        function update ( root )
-        {
-            var i, arrayData, nodes, links, node, nodeEnter, link,
-                tables, rows,
-                depthMaxHeight = [], curMaxId = 0, lastWidth, lastHeight;
-
-
-            nodes = tree.nodes( root ).reverse();
-            links = tree.links( nodes );
-
-
-            node = svgGroup.selectAll( 'g.vtree-node' )
-                .data( nodes, function ( d ) {
-                    if ( ! d.id ) {
-                        d.id = ++curMaxId;
-                    }
-
-                    return d.id;
-                } );
-
-
-            nodeEnter = node.enter().append( 'g' )
-                .attr( 'class', 'vtree-node' );
-
-
-            // link name
-            nodeEnter.append( 'text' )
-                .text( function ( d ) { return d._vtLinkName || ''; } )
-                .style( 'fill-opacity', 1 )
-                .attr( 'y', -conf[CONF_FONT_SIZE] / 3 )
-                .attr( 'text-anchor', 'middle' )
-                .each( function ( d ) {
-                    d._vtCaptionWidth = this.getBBox().width + RECT_MARGIN * 2;
-                } );
-
-
-            arrayData = tree2array( root );
-
-
-            tables = container3.selectAll( 'table.vtree-table' )
-                .data( arrayData )
-                .enter()
-                .append( 'table' )
-                .attr( 'class', 'vtree-table' );
-
-
-            rows = tables.selectAll( 'tr' )
-                .data( function ( d ) {
-                    return d._vtNameTbl || [];
-                } )
-                .enter()
-                .append( 'tr' );
-
-
-            rows.selectAll( 'td' )
-                .data( function ( d ) { return d; } )
-                .enter()
-                .append( 'td' )
-                .text( function ( d, i ) {
-                    if ( i === 1 ) {
-                        return createValStr( d );
-                    }
-
-                    return d.val;
-                } )
-                .each( function ( d, i ) {
-                    var this3 = d3.select( this );
-
-                    if ( i === 0 ) {
-                        this3.attr( 'class', 'vtree-name-cell' );
-                    } else if ( i === 1 ) {
-                        this3.attr( 'class', 'vtree-val-cell' );
-                    }
-
-                    if ( RE_URL.test( d.val ) ) {
-                        this3.html( ['<a href="', d.val, '">', this3.text(), '</a>'].join( '' ) );
-                    }
-                } )
-                .filter( function ( d ) { return d._vtIsAbbreviated; } )
-                    .on( 'mouseover', onMouseOver )
-                    .on( 'mouseout', onMouseOut );
-
-
-            if ( nameSet.length <= 1 ) {
-                rows.selectAll( '.vtree-name-cell' )
-                    .style( 'display', 'none' );
-            }
-
-
-            if ( conf[CONF_FONT_SIZE] !== DEFAULT_FONT_SIZE )
-            {
-                nodeEnter.selectAll( 'text' )
-                    .style( 'font-size', conf[CONF_FONT_SIZE] + 'px' );
-
-                tables
-                    .style( 'font-size', conf[CONF_FONT_SIZE] + 'px' )
-                    .selectAll( 'td' )
-                        .style( 'padding', (conf[CONF_FONT_SIZE] / 5) + 'px' );
-            }
-
-
-            tooltip = container3.append( 'div' )
-                .attr( 'class', 'vtree-tooltip' )
-                .style( 'opacity', 0 );
-
-
-            tables.each( function ( d ) {
-                d._vtNameWidth = this.offsetWidth;
-
-                if ( d._vtCaptionWidth ) {
-                    d._vtWidth = Math.max( d._vtCaptionWidth, d._vtNameWidth );
-                } else {
-                    d._vtWidth = d._vtNameWidth;
-                }
-
-                d._vtHeight = this.offsetHeight;
-            } );
-
-
-            // calc depthMaxHeight
-            breadthFirstTraverse( root, function ( d ) {
-                if ( depthMaxHeight[d.depth] === undefined ) {
-                    depthMaxHeight[d.depth] = 0;
-                }
-
-                if ( d._vtHeight > depthMaxHeight[d.depth] ) {
-                    depthMaxHeight[d.depth] = d._vtHeight;
-                }
-            } );
-
-
-            nodes.forEach( function ( d ) {
-                var i, extY = 0;
-
-                for ( i = 0; i < d.depth; i++ ) {
-                    extY += depthMaxHeight[i];
-                }
-
-                d.y = extY + (d.depth * (conf[CONF_FONT_SIZE] * 5));
-            } );
-
-
-
-            lastWidth = calcNodePos( treeData );
-            lastWidth += MARGIN * 2;
-
-
-            nodeEnter.attr( 'transform', function ( d ) {
-                    return 'translate(' + d.x + ',' + d.y + ')';
-                } );
-
-
-            // calc lastHeight
-            lastHeight = 0;
-
-            for ( i = 0; i < depthMaxHeight.length; i++ ) {
-                lastHeight += depthMaxHeight[i];
-            }
-
-            lastHeight += MARGIN * 2 + (depthMaxHeight.length - 1) * (conf[CONF_FONT_SIZE] * 5);
-
-
-            tables
-                .attr( 'left', function ( d ) { return -d._vtNameWidth / 2; } )
-                .style( 'left', function ( d ) {
-                    return (MARGIN + d.x - d._vtNameWidth / 2) + 'px';
-                } )
-                .style( 'top',  function ( d ) {
-                    return (MARGIN + d.y) + 'px';
-                } );
-
-
-            link = svgGroup.selectAll( 'path.vtree-link' )
-                .data( links, function ( d ) { return d.target.id; } );
-
-
-            link.enter().insert( 'path', 'g' )
-                .attr( 'class', 'vtree-link' )
-                .attr( 'd', diagonal );
-
-
-            svg.attr( 'width', lastWidth ).attr( 'height', lastHeight );
-        }
-
-
-        container3 = d3.select( container );
-
-        container3.text( '' );
-
-        nameSet = [];
-        linkNameSet = [];
-
-        treeData = parseText( text, nameSet, linkNameSet );
-
-        if ( ! treeData ) {
-            container3.text( 'Parse Error' );
-            return;
-        }
-
-        width = DEFAULT_WIDTH - MARGIN * 2;
-        height = DEFAULT_HEIGHT - MARGIN * 2;
-
-        tree = d3.layout.tree().size( [height, width] )
-            .children( function ( d ) {
-                return ( ! d._vtChildren || d._vtChildren.length === 0 ) ? null : d._vtChildren;
-            } );
-
-        diagonal = d3.svg.diagonal()
-            .projection( function( d ) { return [d.x, d.y]; } );
-
-
-        container3.style( 'position', 'relative' );
-
-        svg = container3.append( 'svg' )
-            .attr( 'width', width + MARGIN * 2 )
-            .attr( 'height', height + MARGIN * 2 );
-
-        svgGroup = svg.append( 'g' )
-            .attr( 'transform', ['translate(' + MARGIN + ',' + MARGIN + ')'].join( '' ) );
-
-
-        svgLeft = container.getBoundingClientRect().left;
-        svgTop  = container.getBoundingClientRect().top;
-
-
-        update( treeData );
+            vt.d3.tooltip.text( d._vtOriginal )
+                .style( 'left', (d3.event.pageX - vt.containerLeft) + 'px')
+                .style( 'top',  (d3.event.pageY - vt.containerTop - vt._conf.fontSize) + 'px');
+        };
     }
 
 
-    return {
-        converts: vtreeConverts,
 
-        CONF_MAX_STRING_LEN: CONF_MAX_STRING_LEN,
-        CONF_SHOW_ELLIPSIS: CONF_SHOW_ELLIPSIS,
-        CONF_FONT_SIZE: CONF_FONT_SIZE
+    function createTooltipOnMouseOutFunc ( vt )
+    {
+        return function onMouseOut ()
+        {
+            vt.d3.tooltip.transition()
+                .duration( 500 )
+                .style( 'opacity', 0 );
+
+            vt.d3.tooltip.text( '' );
+        };
+    }
+
+
+
+    function createCollapseFunc ( vt )
+    {
+        return function ( d )
+        {
+            if ( d._vtChildren === undefined && d._vtHiddenChildren === undefined ) {
+                return;
+            }
+
+            if ( d._vtChildren ) {
+                d._vtHiddenChildren = d._vtChildren;
+                d._vtChildren = null;
+            } else {
+                d._vtChildren = d._vtHiddenChildren;
+                d._vtHiddenChildren = null;
+            }
+
+            vt.update ( d );
+        };
+    }
+
+
+
+    function VTree ( data, container )
+    {
+        var json, type;
+
+        type = typeof data;
+
+        if ( type === 'string' ) {
+            json = str2json( data );
+
+            type = typeof json;
+        } else {
+            json = data;
+        }
+
+
+        if ( json === null || type === 'string' || type === 'number' || type === 'boolean' ) {
+            json = { name: json };
+        } else if ( isArray( json ) ) {
+            json = { name: '/', children: json };
+        }
+
+
+
+        this.root = json;
+        this.d3 = {};
+        this.d3.container = d3.select( container )
+            .text( '' )
+            .style( 'position', 'relative' );
+
+
+        setVtreeInfo ( this.root );
+
+
+        if ( ! this.root ) {
+            this.d3.container.text( 'Parse Error' );
+            return;
+        }
+
+
+        this._conf = {};
+        this._conf.fontSize = 14;
+        this._conf.nodeMargin = 8;
+        this._conf.td_padding = 4;
+        this._conf.duration = 768;
+        this._conf.showArrayNode = true;
+        this._conf.showColumn = [];
+        this._conf.showColumn[0] = true;
+        this._conf.showColumn[1] = true;
+        this._conf.showLinkName = true;
+        this._conf.maxNameLen = 32;
+        this._conf.maxValueLen = 32;
+        this._conf.showEllipsis = true;
+
+        this.width = WIDTH - MARGIN * 2;
+        this.height= HEIGHT - MARGIN * 2;
+
+
+        this.d3.zoomListener = d3.behavior.zoom()
+            .scaleExtent( [1, 2] )
+            .on( 'zoom', createZoomFunc( this ) );
+
+
+        this.d3.svg = this.d3.container.append( 'svg' )
+            .attr( 'width', this.width )
+            .attr( 'height', this.height )
+            .call( this.d3.zoomListener );
+
+
+        this.d3.g = this.d3.svg.append( 'g' )
+            .attr( 'transform', ['translate(', MARGIN, ',', MARGIN, ')'].join( '' ) );
+
+
+        this.d3.ruler = this.d3.container.append( 'span' )
+            .text( '' )
+            .style( 'visibility', 'hidden' )
+            .style( 'white-space', 'nowrap' )
+            .style( 'font', this._conf.fontSize + 'px sans-serif' );
+
+
+        this.d3.tooltip = this.d3.container.append( 'div' )
+            .attr( 'class', 'vtree-tooltip' )
+            .style( 'opacity', 0 );
+
+
+        this.d3.tree = d3.layout.vtree()
+            .children( createChildrenFunc( this ) )
+            .separation( createSeparationFunc( this ) )
+            .hSeparation( createHSeparationFunc( this ) )
+            .nodeSize( createNodeSizeFunc( this ) );
+
+
+        this.d3.diagonal = d3.svg.diagonal()
+            .projection( function ( d ) { return [d.x, d.y]; } );
+
+
+        this.containerLeft = container.getBoundingClientRect().left;
+        this.containerTop  = container.getBoundingClientRect().top;
+
+
+        this.root.x0 = 0;
+        this.root.y0 = 0;
+    }
+
+
+
+    function vtree ( data, container )
+    {
+        return new VTree( data, container );
+    }
+
+
+
+    VTree.prototype.createLinkName = function ( nodeEnter, nodeUpdate )
+    {
+        var vt = this, showLinkName;
+
+        showLinkName = this._conf.showLinkName;
+
+        nodeEnter.filter( function ( d ) { return d._vtLinkName; } )
+            .append( 'text' )
+            .attr( 'class', 'vtree-link-name' );
+
+
+        nodeUpdate.selectAll( '.vtree-link-name' )
+            .text( function ( d ) {
+                if ( ! showLinkName ) {
+                    return '';
+                }
+
+                return createLinkNameStr( vt, d );
+            } )
+            .attr( 'y', -this._conf.fontSize / 3 )
+            .attr( 'text-anchor', 'middle' )
+            .style( 'font-size', this._conf.fontSize );
     };
+
+
+
+    VTree.prototype.createDummyArray = function ( nodeEnter, nodeUpdate )
+    {
+        var r;
+
+        r = this._conf.fontSize * 2 / 3;
+
+        nodeEnter.filter( function ( d ) { return d._vtIsDummy; } )
+            .append( 'circle' )
+            .attr( 'class', 'vtree-dummy' )
+            .attr( 'cy', r )
+            .attr( 'r', r );
+
+
+        nodeUpdate.selectAll( 'circle' )
+            .style( 'fill', function ( d ) {
+                if ( d._vtHiddenChildren ) {
+                    return 'lightsteelblue';
+                }
+
+                return 'white';
+            } );
+    };
+
+
+
+    VTree.prototype.createTables = function ( node, nodeEnter, nodeUpdate )
+    {
+        var vt = this, onMouseOver, onMouseOut;
+
+        // create table border
+        nodeEnter.filter( function ( d ) { return ! d._vtIsDummy; } )
+            .append( 'path' )
+            .attr( 'class', 'vtree-table' );
+
+
+        nodeUpdate.selectAll( '.vtree-table' )
+            .attr( 'd', function ( d ) {
+                var i, a = [], sepX, w2, h, stepH, nameW, tbl;
+
+                tbl = d._vtNameTbl;
+
+                if ( tbl && tbl.length !== 0 ) {
+                    nameW = calcMaxColumnWidth( vt, tbl, 0 );
+                } else {
+                    nameW = 0;
+                }
+
+                w2 = d._vtWidth / 2;
+
+                if ( vt._conf.showColumn[0] === false ) {
+                    sepX = -w2;
+                } else {
+                    sepX = -w2 + nameW;
+                }
+
+                // rect
+                a.push( ['M', -w2, 0 ].join( ' ' ) );
+                a.push( ['L', w2, 0 ].join( ' ' ) );
+                a.push( ['L', w2, d.h ].join( ' ' ) );
+                a.push( ['L', -w2, d.h ].join( ' ' ) );
+                a.push( 'Z' );
+
+                if ( tbl && tbl.length !== 0 )
+                {
+                    if ( vt._conf.showColumn[0] && vt._conf.showColumn[1] )
+                    {
+                        a.push( ['M', sepX, 0 ].join( ' ' ) );
+                        a.push( ['L', sepX, d.h ].join( ' ' ) );
+                    }
+
+                    stepH = d.h / tbl.length;
+                    h = stepH;
+
+                    for ( i = 0; i < tbl.length; i++ )
+                    {
+                        a.push( ['M', -w2, h ].join( ' ' ) );
+                        a.push( ['L', w2, h ].join( ' ' ) );
+
+                        h += stepH;
+                    }
+                }
+
+                return a.join( ' ' );
+            } )
+            .style( 'fill', function ( d ) {
+                if ( d._vtHiddenChildren ) {
+                    return 'lightsteelblue';
+                }
+
+                return 'white';
+            } );
+
+
+        onMouseOver = createTooltipOnMouseOverFunc( this );
+        onMouseOut = createTooltipOnMouseOutFunc( this );
+
+
+        node.selectAll( 'g.vtree-row' ).remove();
+
+
+        // create table text
+        nodeUpdate.each( function ( d ) {
+            var tbl, w2, nameW, stepH, sepX, pad, name, val,
+                maxNameLen, maxValueLen, showEllipsis;
+
+            if ( ! d._vtNameTbl || d._vtNameTbl.length === 0 ) {
+                return;
+            }
+
+            tbl = d._vtNameTbl;
+
+            if ( tbl && tbl.length !== 0 ) {
+                nameW = calcMaxColumnWidth( vt, tbl, 0 );
+            } else {
+                nameW = 0;
+            }
+
+            w2 = d._vtWidth / 2;
+
+            if ( vt._conf.showColumn[0] === false ) {
+                sepX = -w2;
+            } else {
+                sepX = -w2 + nameW;
+            }
+
+            pad = vt._conf.td_padding;
+            stepH = d.h / tbl.length;
+
+            maxNameLen = vt._conf.maxNameLen;
+            maxValueLen = vt._conf.maxValueLen;
+            showEllipsis = vt._conf.showEllipsis;
+
+
+            d3.select( this ).selectAll( 'g' )
+                .data( tbl )
+                .enter()
+                .append( 'g' )
+                .attr( 'class', 'vtree-row' )
+                .each( function ( row, rowNo ) {
+                    var d3_this, d3_name, d3_val, h, dVal, linked;
+
+                    d3_this = d3.select( this );
+                    h = stepH * (rowNo + 1) - 2 - pad;
+
+                    if ( vt._conf.showColumn[0] )
+                    {
+                        row[0]._vtOriginal = row[0].val || '';
+                        name = createTableStr( row[0].val, maxNameLen, showEllipsis );
+
+                        d3_name = d3_this.selectAll( 'text.vtree-name-col' )
+                            .data( [row[0]] )
+                            .enter()
+                            .append( 'text' )
+                            .attr( 'class', 'vtree-name-col' )
+                            .text( name )
+                            .attr( 'x', -w2 + pad )
+                            .attr( 'y', h )
+                            .style( 'font-size', vt._conf.fontSize );
+
+                        d3_name.filter( function ( d ) { return d._vtOriginal.length > maxNameLen; } )
+                            .on( 'mouseover', onMouseOver )
+                            .on( 'mouseout', onMouseOut );
+                    }
+
+
+                    if ( vt._conf.showColumn[1] )
+                    {
+                        row[1]._vtOriginal = row[1].val || '';
+                        val = createTableStr( row[1].val, maxValueLen, showEllipsis );
+
+                        if ( RE_URL.test( row[1].val ) ) {
+                            dVal = d3_this.append( 'a' )
+                                .attr( 'xlink:href', row[1].val );
+                            linked = true;
+                        } else {
+                            dVal = d3_this;
+                            linked = false;
+                        }
+
+                        d3_val = dVal.selectAll( 'text.vtree-val-col' )
+                            .data( [row[1]] )
+                            .enter()
+                            .append( 'text' )
+                            .attr( 'class', 'vtree-val-col' )
+                            .text( val )
+                            .attr( 'x', sepX + pad )
+                            .attr( 'y', h )
+                            .style( 'font-size', vt._conf.fontSize );
+
+
+                        d3_val.filter( function ( d ) { return d._vtOriginal.length > maxValueLen; } )
+                            .on( 'mouseover', onMouseOver )
+                            .on( 'mouseout', onMouseOut );
+
+                        if ( linked ) {
+                            dVal.attr( 'fill', '#00F' );
+                        }
+                    }
+                } );
+        } );
+
+
+        this.createDummyArray( nodeEnter, nodeUpdate );
+    };
+
+
+
+    VTree.prototype.createNodes = function ( src, nodes )
+    {
+        var node, nodeEnter, nodeUpdate, curMaxId = 0;
+
+
+        node = this.d3.g.selectAll( 'g.vtree-node' )
+            .data( nodes, function ( d ) {
+                if ( ! d.id ) {
+                    d.id = ++curMaxId;
+                }
+
+                return d.id;
+            } );
+
+
+        nodeEnter = node.enter().append( 'g' )
+            .attr( 'class', 'vtree-node' )
+            .attr( 'transform', function () {
+                return ['translate(', src.x0, ',', src.y0, ')'].join( '' );
+            } )
+            .style( 'opacity', 0 )
+            .on( 'click', createCollapseFunc( this ) );
+
+
+        nodeUpdate = node.transition()
+            .duration( this._conf.duration )
+            .attr( 'transform', function ( d ) {
+                return ['translate(', d.x, ',', d.y, ')'].join( '' );
+            } )
+            .style( 'opacity', 1 );
+
+
+        node.exit().transition()
+            .duration( this._conf.duration )
+            .attr( 'transform', function () {
+                return ['translate(', src.x, ',', src.y, ')'].join( '' );
+            } )
+            .style( 'opacity', 0 )
+            .remove();
+
+
+
+        this.createLinkName( nodeEnter, nodeUpdate );
+
+        this.createTables( node, nodeEnter, nodeUpdate );
+    };
+
+
+
+    VTree.prototype.createLinks = function ( src, links )
+    {
+        var link, diagonal;
+
+        diagonal = this.d3.diagonal;
+
+        link = this.d3.g.selectAll( 'path.vtree-link' )
+            .data( links, function ( d ) { return d.target.id; } );
+
+
+        link.enter().insert( 'path', 'g' )
+            .attr( 'class', 'vtree-link' )
+            .attr( 'd', function () {
+                var o = { x: src.x0, y: src.y0 };
+
+                return diagonal( { source: o, target: o } );
+            } )
+            .style( 'opacity', 0 );
+
+
+        link.transition()
+            .duration( this._conf.duration )
+            .attr( 'd', diagonal )
+            .style( 'opacity', 1 );
+
+
+        link.exit().transition()
+            .duration( this._conf.duration )
+            .attr( 'd', function () {
+                var o = { x: src.x, y: src.y };
+
+                return diagonal( { source: o, target: o } );
+            } )
+            .style( 'opacity', 0 )
+            .remove();
+    };
+
+
+
+    VTree.prototype.update = function ( src )
+    {
+        var i, d, nodes, links, size = {}, x, y;
+
+        if ( ! src ) {
+            src = this.root;
+        }
+
+        nodes = this.d3.tree( this.root, undefined, size );
+        links = this.d3.tree.links( nodes );
+
+
+        this.createNodes( src, nodes );
+        this.createLinks( src, links );
+
+        if ( size.width < this.width && size.height < this.height )
+        {
+            x = this.width / 2 - this.root.x;
+            y = (this.height - size.height) / 2;
+        }
+        else if ( src === this.root )
+        {
+            x = this.width / 2 - this.root.x;
+
+            if ( size.height < this.height ) {
+                y = (this.height - size.height) / 2;
+            } else {
+                y = MARGIN;
+            }
+        }
+        else
+        {
+            x = this.width / 2 - src.x;
+
+            if ( size.height < this.height ) {
+                y = (this.height - size.height) / 2;
+            } else {
+                y = this.height / 2 - src.y;
+            }
+        }
+
+        this.d3.zoomListener.translate( [x, y] );
+        this.d3.zoomListener.event( this.d3.g.transition().duration( this._conf.duration ) );
+
+
+        // Stash the old positions for transition.
+        for ( i = 0; i < nodes.length; i++ ) {
+            d = nodes[i];
+
+            d.x0 = d.x;
+            d.y0 = d.y;
+        }
+
+        return this;
+    };
+
+
+
+    function getNumberConf ( val, start, end )
+    {
+        if ( typeof val !== 'number' ) {
+            return null;
+        }
+
+        if ( start && val < start ) {
+            return start;
+        }
+
+        if ( end && val > end ) {
+            return end;
+        }
+
+        return val;
+    }
+
+
+
+    function setNumberConf ( conf, name, val, start, end )
+    {
+        var v = getNumberConf( val, start, end );
+
+        if ( v !== null ) {
+            conf[name] = v;
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+    VTree.prototype.size = function ( width, height )
+    {
+        var w, h;
+
+        w = getNumberConf( width, 32, 8096 );
+        h = getNumberConf( height, 32, 8096 );
+
+        if ( w === null || h === null ) {
+            return this;
+        }
+
+        this.width = width;
+        this.height = height;
+
+        this.d3.svg
+            .attr( 'width', width )
+            .attr( 'height', height );
+
+        return this;
+    };
+
+
+
+    VTree.prototype.conf = function ( name, val )
+    {
+        var cf;
+
+        cf = this._conf;
+
+        switch ( name )
+        {
+        case 'showEllipsis':
+            cf.showEllipsis = !! val;
+            break;
+
+
+        case 'showArrayNode':
+            cf.showArrayNode= !! val;
+            break;
+
+
+        case 'showLinkName':
+            cf.showLinkName = !! val;
+            break;
+
+
+        case 'showColumn0':
+            cf.showColumn[0] = !! val;
+
+            if ( cf.showColumn[0] === false ) {
+                cf.showColumn[1] = true;
+            }
+            break;
+
+
+        case 'showColumn1':
+            cf.showColumn[1] = !! val;
+
+            if ( cf.showColumn[1] === false ) {
+                cf.showColumn[0] = true;
+            }
+            break;
+
+
+        case 'fontSize':
+            setNumberConf( cf, name, val, 9, 32 );
+
+            this.d3.ruler.style( 'font-size', cf.fontSize + 'px' );
+
+            break;
+
+
+        case 'nodeMargin':
+            setNumberConf( cf, name, val, 1, 100 );
+            break;
+
+
+        case 'animeDuration':
+            setNumberConf( cf, 'duration', val, 10, 10000 );
+            break;
+
+
+        case 'maxNameLen':
+            setNumberConf( cf, name, val, 1, 1024 );
+            break;
+
+
+        case 'maxValueLen':
+            setNumberConf( cf, name, val, 1, 1024 );
+            break;
+
+
+        default:
+            break;
+        }
+
+        return this;
+    };
+
+
+
+    return vtree;
 }());
 
