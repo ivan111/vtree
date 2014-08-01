@@ -425,6 +425,7 @@ var vtree = (function ()
             .text( '' )
             .style( 'position', 'relative' );
 
+        this.curMaxId = 0;
 
         this._conf = {};
         this._conf.fontSize = 14;
@@ -492,10 +493,6 @@ var vtree = (function ()
             this.d3.container.text( 'Parse Error' );
             return;
         }
-
-
-        this.root.x0 = 0;
-        this.root.y0 = 0;
     }
 
 
@@ -742,13 +739,14 @@ var vtree = (function ()
 
     VTree.prototype.createNodes = function ( src, nodes )
     {
-        var node, nodeEnter, nodeUpdate, curMaxId = 0;
+        var vt, node, nodeEnter, nodeUpdate;
 
+        vt = this;
 
         node = this.d3.g.selectAll( 'g.vtree-node' )
             .data( nodes, function ( d ) {
                 if ( ! d.id ) {
-                    d.id = ++curMaxId;
+                    d.id = ++vt.curMaxId;
                 }
 
                 return d.id;
@@ -910,7 +908,15 @@ var vtree = (function ()
 
         this.root = json;
 
-        setVtreeInfo ( this.root );
+        if ( this.root )
+        {
+            setVtreeInfo ( this.root );
+
+            this.root.x0 = 0;
+            this.root.y0 = 0;
+        }
+
+        return this;
     };
 
 
