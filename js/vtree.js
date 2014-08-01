@@ -32,7 +32,8 @@ var vtree = (function ()
 
 
 
-    function addName ( d, name, val ) {
+    function addName ( d, name, val )
+    {
         if ( ! d._vtNameTbl ) {
             d._vtNameTbl = [];
         }
@@ -42,7 +43,8 @@ var vtree = (function ()
 
 
 
-    function setLinkName ( d, name, index ) {
+    function setLinkName ( d, name, index )
+    {
         if ( index || index === 0 ) {
             name = ['[', index, ']'].join( '' );
         }
@@ -418,41 +420,10 @@ var vtree = (function ()
 
     function VTree ( data, container )
     {
-        var json, type;
-
-        type = typeof data;
-
-        if ( type === 'string' ) {
-            json = str2json( data );
-
-            type = typeof json;
-        } else {
-            json = data;
-        }
-
-
-        if ( json === null || type === 'string' || type === 'number' || type === 'boolean' ) {
-            json = { name: json };
-        } else if ( isArray( json ) ) {
-            json = { name: '/', children: json };
-        }
-
-
-
-        this.root = json;
         this.d3 = {};
         this.d3.container = d3.select( container )
             .text( '' )
             .style( 'position', 'relative' );
-
-
-        setVtreeInfo ( this.root );
-
-
-        if ( ! this.root ) {
-            this.d3.container.text( 'Parse Error' );
-            return;
-        }
 
 
         this._conf = {};
@@ -513,6 +484,14 @@ var vtree = (function ()
 
         this.containerLeft = container.getBoundingClientRect().left;
         this.containerTop  = container.getBoundingClientRect().top;
+
+
+        this.data( data );
+
+        if ( ! this.root ) {
+            this.d3.container.text( 'Parse Error' );
+            return;
+        }
 
 
         this.root.x0 = 0;
@@ -903,6 +882,35 @@ var vtree = (function ()
         }
 
         return this;
+    };
+
+
+
+    VTree.prototype.data = function ( data )
+    {
+        var json, type;
+
+        type = typeof data;
+
+        if ( type === 'string' ) {
+            json = str2json( data );
+
+            type = typeof json;
+        } else {
+            json = data;
+        }
+
+
+        if ( json === null || type === 'string' || type === 'number' || type === 'boolean' ) {
+            json = { name: json };
+        } else if ( isArray( json ) ) {
+            json = { name: '/', children: json };
+        }
+
+
+        this.root = json;
+
+        setVtreeInfo ( this.root );
     };
 
 
