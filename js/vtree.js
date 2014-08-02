@@ -17,6 +17,7 @@ var vtree = (function ()
         HEIGHT = 800,
         MARGIN = 20,
 
+        RE_NULL = /^\s*null\s*$/,
         RE_URL = /^\s*https?:\/\/[^\s<>]+\s*$/;
 
 
@@ -77,6 +78,10 @@ var vtree = (function ()
             }
 
             if ( name.length >= 3 && name[0] === '_' && name[1] === 'v' && name[2] === 't' ) {
+                continue;
+            }
+
+            if ( name === '_PyType' ) {
                 continue;
             }
 
@@ -355,6 +360,24 @@ var vtree = (function ()
                 sumH = (fontSize + pad * 2) * tbl.length;
             }
 
+            if ( vt._mode === vt.MODE_PYTHON_AST && d._PyType )
+            {
+                vt.d3.ruler.style( 'font-weight', 'bold' );
+                vt.d3.ruler.text( d._PyType );
+                w = vt.d3.ruler[0][0].offsetWidth;
+                w += pad * 2;
+                vt.d3.ruler.text( '' );
+                vt.d3.ruler.style( 'font-weight', 'normal' );
+
+                if ( w > maxW ) {
+                    maxW = w;
+                }
+
+                if ( tbl && tbl.length !== 0 ) {
+                    sumH += fontSize + pad * 2;
+                }
+            }
+
             d._vtWidth = maxW;
 
             if ( linkNameW > maxW ) {
@@ -418,7 +441,7 @@ var vtree = (function ()
 
 
 
-    function VTree ( data, container )
+    function VTree ( container, data )
     {
         this.d3 = {};
         this.d3.container = d3.select( container )
@@ -449,6 +472,8 @@ var vtree = (function ()
             .scaleExtent( [1, 2] )
             .on( 'zoom', createZoomFunc( this ) );
 
+        this.d3.msg = this.d3.container.append( 'div' )
+            .attr( 'class', 'vtree-message' );
 
         this.d3.svg = this.d3.container.append( 'svg' )
             .attr( 'width', this.width )
@@ -486,13 +511,9 @@ var vtree = (function ()
         this.containerLeft = container.getBoundingClientRect().left;
         this.containerTop  = container.getBoundingClientRect().top;
 
+        this.mode( this.MODE_NORMAL );
 
         this.data( data );
-
-        if ( ! this.root ) {
-            this.d3.container.text( 'Parse Error' );
-            return;
-        }
     }
 
 
@@ -557,7 +578,7 @@ var vtree = (function ()
 
     VTree.prototype.createTables = function ( node, nodeEnter, nodeUpdate )
     {
-        var vt = this, onMouseOver, onMouseOut;
+        var vt = this, onMouseOver, onMouseOut, pad;
 
         // create table border
         nodeEnter.filter( function ( d ) { return ! d._vtIsDummy; } )
@@ -567,7 +588,7 @@ var vtree = (function ()
 
         nodeUpdate.selectAll( '.vtree-table' )
             .attr( 'd', function ( d ) {
-                var i, a = [], sepX, w2, h, stepH, nameW, tbl;
+                var i, a = [], sepX, w2, y, stepH, nameW, tbl, numRows, rowStartY;
 
                 tbl = d._vtNameTbl;
 
@@ -592,23 +613,34 @@ var vtree = (function ()
                 a.push( ['L', -w2, d.h ].join( ' ' ) );
                 a.push( 'Z' );
 
-                if ( tbl && tbl.length !== 0 )
+                if ( tbl && tbl.length !== 0)
                 {
+                    numRows = tbl.length;
+
+                    if ( vt._mode === vt.MODE_PYTHON_AST && d._PyType ) {
+                        numRows++;
+                        rowStartY = d.h / numRows;
+                        y = rowStartY;
+                    } else {
+                        rowStartY = 0;
+                        y = d.h / tbl.length;
+                    }
+
+                    stepH = (d.h - rowStartY) / tbl.length;
+
+
                     if ( vt._conf.showColumn[0] && vt._conf.showColumn[1] )
                     {
-                        a.push( ['M', sepX, 0 ].join( ' ' ) );
+                        a.push( ['M', sepX, rowStartY ].join( ' ' ) );
                         a.push( ['L', sepX, d.h ].join( ' ' ) );
                     }
 
-                    stepH = d.h / tbl.length;
-                    h = stepH;
-
-                    for ( i = 0; i < tbl.length; i++ )
+                    for ( i = 0; i < numRows; i++ )
                     {
-                        a.push( ['M', -w2, h ].join( ' ' ) );
-                        a.push( ['L', w2, h ].join( ' ' ) );
+                        a.push( ['M', -w2, y ].join( ' ' ) );
+                        a.push( ['L', w2, y ].join( ' ' ) );
 
-                        h += stepH;
+                        y += stepH;
                     }
                 }
 
@@ -629,10 +661,37 @@ var vtree = (function ()
 
         node.selectAll( 'g.vtree-row' ).remove();
 
+        pad = vt._conf.td_padding;
+
+
+        if ( vt._mode === vt.MODE_PYTHON_AST )
+        {
+            nodeEnter.filter( function ( d ) { return d._PyType; } )
+                .append( 'text' )
+                .attr( 'class', 'vtree-py-type' );
+
+
+            nodeUpdate.selectAll( '.vtree-py-type' )
+                .text( function ( d ) { return d._PyType; } )
+                .attr( 'x', function ( d ) { return -d._vtWidth / 2 + pad; } )
+                .attr( 'y', function ( d ) {
+                    var len = 0;
+
+                    if ( d._vtNameTbl ) {
+                        len = d._vtNameTbl.length;
+                    }
+
+                    return d.h / (len + 1) - 2 - pad;
+                } )
+                .style( 'fill', 'darkslateblue' )
+                .style( 'font-weight', 'bold' )
+                .style( 'font-size', vt._conf.fontSize );
+        }
+
 
         // create table text
         nodeUpdate.each( function ( d ) {
-            var tbl, w2, nameW, stepH, sepX, pad, name, val,
+            var tbl, w2, nameW, stepH, sepX, name, val,
                 maxNameLen, maxValueLen, showEllipsis;
 
             if ( ! d._vtNameTbl || d._vtNameTbl.length === 0 ) {
@@ -655,13 +714,9 @@ var vtree = (function ()
                 sepX = -w2 + nameW;
             }
 
-            pad = vt._conf.td_padding;
-            stepH = d.h / tbl.length;
-
             maxNameLen = vt._conf.maxNameLen;
             maxValueLen = vt._conf.maxValueLen;
             showEllipsis = vt._conf.showEllipsis;
-
 
             d3.select( this ).selectAll( 'g' )
                 .data( tbl )
@@ -672,11 +727,19 @@ var vtree = (function ()
                     var d3_this, d3_name, d3_val, h, dVal, linked;
 
                     d3_this = d3.select( this );
-                    h = stepH * (rowNo + 1) - 2 - pad;
+
+                    if ( vt._mode === vt.MODE_PYTHON_AST && d._PyType ) {
+                        stepH = d.h / (tbl.length + 1);
+                        h = stepH * (rowNo + 2) - 2 - pad;
+                    } else {
+                        stepH = d.h / tbl.length;
+                        h = stepH * (rowNo + 1) - 2 - pad;
+                    }
 
                     if ( vt._conf.showColumn[0] )
                     {
                         row[0]._vtOriginal = row[0].val || '';
+
                         name = createTableStr( row[0].val, maxNameLen, showEllipsis );
 
                         d3_name = d3_this.selectAll( 'text.vtree-name-col' )
@@ -888,6 +951,13 @@ var vtree = (function ()
     {
         var json, type;
 
+        if ( data === undefined || data === null ) {
+            this.root = null;
+            this.d3.msg.text( '' );
+
+            return this;
+        }
+
         type = typeof data;
 
         if ( type === 'string' ) {
@@ -899,7 +969,7 @@ var vtree = (function ()
         }
 
 
-        if ( json === null || type === 'string' || type === 'number' || type === 'boolean' ) {
+        if ( (json === null && RE_NULL.test( data ) ) || type === 'string' || type === 'number' || type === 'boolean' ) {
             json = { name: json };
         } else if ( isArray( json ) ) {
             json = { name: '/', children: json };
@@ -910,11 +980,39 @@ var vtree = (function ()
 
         if ( this.root )
         {
+            this.d3.msg.text( '' );
+
             setVtreeInfo ( this.root );
 
             this.root.x0 = 0;
             this.root.y0 = 0;
         }
+        else
+        {
+            this.d3.msg.text( 'Parse Error' );
+        }
+
+        return this;
+    };
+
+
+
+    VTree.prototype.MODE_NORMAL = 1;
+    VTree.prototype.MODE_PYTHON_AST = 2;
+    VTree.prototype.MAX_MODE = 3;
+
+
+    VTree.prototype.mode = function ( mode )
+    {
+        if ( typeof mode !== 'number' ) {
+            return this;
+        }
+
+        if ( mode < 1 || mode >= this.MAX_MODE ) {
+            return this;
+        }
+
+        this._mode = mode;
 
         return this;
     };

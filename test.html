@@ -20,7 +20,7 @@ window.onload = function () {
     var i, vt, NUM_TEST = 12;
 
     for ( i = 0; i < NUM_TEST; i++ ) {
-        vt = vtree( document.getElementById( 'code-test' + i ).innerHTML, document.getElementById( 'div-test' + i ) );
+        vt = vtree( document.getElementById( 'div-test' + i ), document.getElementById( 'code-test' + i ).innerHTML );
         vt.update();
     }
 };

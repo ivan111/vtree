@@ -22,6 +22,7 @@ window.onload = function () {
     var vt;
 
     vt = vtree( document.getElementById( 'container' ), document.getElementById( 'from-text' ).value );
+    vt.mode( vt.MODE_PYTHON_AST );
 
     vt.update();
 
@@ -69,22 +70,9 @@ window.onload = function () {
 
 <body>
 
-<a href="/">Home</a>
-
-<h1>JSON Tree Visualizer</h1>
-
-<p style="text-align: right;">Ver 0.1.9.1.9.1 <a href="https://github.com/ivan111/vtree">github</a></p>
-
-<p style="color: red;">This software converts JSON strings into tree diagrams. For example, it is used to show you AST(Abstract Syntax Tree) as tree diagrams for debugging. In that case, offcourse, you need to translate AST into JSON.</p>
-
-<p style="color: green;">JSON文字列を木構造の図に変換します。例えば、デバッグのためにAST(抽象構文木)を表示することに使えます。もきろん、その場合には、ASTをJSONに変換する必要があります。</p>
-
-<p style="color: blue;">JSON Фёдор Миха́йлович Достое́вский. Борщ AST(Иван Карамазов) вкусный. Я также хотел пирожки.</p>
-
-
 <div>
 <textarea id="from-text" rows="8" cols="80">
-["FunctionLiteral", {"name":""}, ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":1} ] ] ], ["IfStatement", ["CompareOperation", {"op":"GT"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":0} ] ], ["Block", ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"y"} ], ["BinaryOperation", {"op":"ADD"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":2} ] ] ] ], ["ExpressionStatement", ["Call", ["VariableProxy", {"name":"print"} ], ["VariableProxy", {"name":"y"} ] ] ] ], ["EmptyStatement"] ] ]
+{ "_PyType": "Module", "body": [ { "_PyType": "If", "test": { "_PyType": "Compare", "left": { "_PyType": "Name", "id": "a", "ctx": { "_PyType": "Load" } }, "ops": [ { "_PyType": "Eq" } ], "comparators": [ { "_PyType": "Num", "n": 3 } ] }, "body": [ { "_PyType": "Print", "dest": null, "values": [ { "_PyType": "Str", "s": "hello" } ], "nl": true } ], "orelse": [  ] } ] }
 </textarea>
 </div>
 
@@ -92,7 +80,7 @@ window.onload = function () {
 
 <fieldset>
 <legend>Functions</legend>
-<input id="go-button" type="button" value="Visualize">
+<input id="go-button" type="button" value="Go!">
 </fieldset>
 
 <fieldset>
@@ -120,8 +108,6 @@ window.onload = function () {
 
 <div id="container"></div>
 
-
-<p style="text-align: right;">Created Date: 2014-07-27</p>
 
 </body>
 
