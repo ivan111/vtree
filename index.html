@@ -17,48 +17,63 @@
 <script src="js/vtree.js"></script>
 <!-- <script src="js/vtree.min.js"></script> -->
 
+<style>
+fieldset {
+    margin: 8px;
+    padding: 4px;
+    height: 68px;
+    float: left;
+    display: inline;
+    white-space: nowrap;
+}
+
+
+fieldset input {
+    margin: 4px;
+    padding: 4px;
+}
+</style>
+
 <script type="text/javascript">
 window.onload = function () {
-    var vt;
+    var container = document.getElementById("container");
+    var data = document.getElementById("from-text").value;
 
-    vt = vtree( document.getElementById( 'container' ), document.getElementById( 'from-text' ).value );
-
-    vt.update();
-
+    var vt = vtree(container)
+        .data(data)
+        .update();
 
     function showHandler () {
-        vt.conf( this.value, this.checked )
+        vt.conf(this.value, this.checked)
             .update();
 
-        if ( this.value === 'showColumn0' && this.checked === false ) {
-            document.getElementById( 'showColumn1' ).checked = true;
-        } else if ( this.value === 'showColumn1' && this.checked === false ) {
-            document.getElementById( 'showColumn0' ).checked = true;
+        if (this.value === "showColumn0" && this.checked === false) {
+            document.getElementById("showColumn1").checked = true;
+        } else if (this.value === "showColumn1" && this.checked === false) {
+            document.getElementById("showColumn0").checked = true;
         }
     };
 
-    document.getElementById( 'showArrayNode' ).onclick = showHandler;
-    document.getElementById( 'showLinkName' ).onclick = showHandler;
-    document.getElementById( 'showColumn0' ).onclick = showHandler;
-    document.getElementById( 'showColumn1' ).onclick = showHandler;
+    document.getElementById("showArrayNode").onclick = showHandler;
+    document.getElementById("showLinkName").onclick = showHandler;
+    document.getElementById("showColumn0").onclick = showHandler;
+    document.getElementById("showColumn1").onclick = showHandler;
 
 
-    document.getElementById( 'go-button' ).onclick = function () {
-        var v;
-
+    document.getElementById("go-button").onclick = function () {
         try {
-            v = parseInt( document.getElementById( 'maxNameLen' ).value );
-            vt.conf( 'maxNameLen', v );
-        } catch ( err ) {
+            var v = parseInt(document.getElementById("maxNameLen").value);
+            vt.conf("maxNameLen", v);
+        } catch (err) {
         }
 
         try {
-            v = parseInt( document.getElementById( 'maxValueLen' ).value );
-            vt.conf( 'maxValueLen', v );
-        } catch ( err ) {
+            v = parseInt(document.getElementById("maxValueLen").value);
+            vt.conf("maxValueLen", v);
+        } catch (err) {
         }
 
-        vt.data( document.getElementById( 'from-text' ).value );
+        vt.data(document.getElementById("from-text").value);
         vt.update();
     };
 };
@@ -97,10 +112,10 @@ window.onload = function () {
 
 <fieldset>
 <legend>Show</legend>
-<input id="showArrayNode" type="checkbox" value="showArrayNode" checked>Array Node&nbsp;&nbsp;</input>
-<input id="showLinkName" type="checkbox" value="showLinkName" checked>Link Name&nbsp;&nbsp;</input>
-<input id="showColumn0" type="checkbox" value="showColumn0" checked>Column 1&nbsp;&nbsp;</input>
-<input id="showColumn1" type="checkbox" value="showColumn1" checked>Column 2&nbsp;&nbsp;</input>
+<input id="showArrayNode" type="checkbox" value="showArrayNode" checked>Array Node&nbsp;&nbsp;
+<input id="showLinkName" type="checkbox" value="showLinkName" checked>Link Name&nbsp;&nbsp;
+<input id="showColumn0" type="checkbox" value="showColumn0" checked>Column 1&nbsp;&nbsp;
+<input id="showColumn1" type="checkbox" value="showColumn1" checked>Column 2&nbsp;&nbsp;
 </fieldset>
 
 <fieldset>

@@ -1,20 +1,4 @@
-fieldset {
-    margin: 8px;
-    padding: 4px;
-    height: 68px;
-    float: left;
-    display: inline;
-    white-space: nowrap;
-}
-
-
-fieldset input {
-    margin: 4px;
-    padding: 4px;
-}
-
-
-svg {
+svg.vtree {
     overflow: hidden;
     background: #ffffff;
     -webkit-box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
@@ -23,12 +7,12 @@ svg {
 }
 
 
-svg .vtree-node text {
+svg.vtree .vtree-node text {
     cursor: pointer;
 }
 
 
-svg circle.vtree-dummy {
+svg.vtree circle.vtree-dummy {
     cursor: pointer;
     stroke: steelblue;
     stroke-width: 2px;
@@ -36,25 +20,25 @@ svg circle.vtree-dummy {
 }
 
 
-svg .vtree-node text {
+svg.vtree .vtree-node text {
     font: 14px sans-serif;
 }
 
 
-svg .vtree-link {
+svg.vtree .vtree-link {
     fill: none;
     stroke: #ccc;
     stroke-width: 2px;
 }
 
 
-svg .vtree-table {
+svg.vtree .vtree-table {
     stroke-width: 2px;
     stroke: steelblue;
 }
 
 
-svg path.vtree-table {
+svg.vtree path.vtree-table {
     fill: white;
     cursor: pointer;
 }
