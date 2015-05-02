@@ -27,17 +27,17 @@
 
 
     VTree.prototype.initConf = function () {
-        this.conf = {};
+        this._conf = {};
 
-        this.conf.fontSize = 14;
-        this.conf.nodeMargin = 8;
-        this.conf.tdPadding = 4;
-        this.conf.duration = 768;
-        this.conf.showArrayNode = true;
-        this.conf.showColumn = [true, true];
-        this.conf.showLinkName = true;
-        this.conf.maxNameLen = 32;
-        this.conf.maxValueLen = 32;
+        this._conf.fontSize = 14;
+        this._conf.nodeMargin = 8;
+        this._conf.tdPadding = 4;
+        this._conf.duration = 768;
+        this._conf.showArrayNode = true;
+        this._conf.showColumn = [true, true];
+        this._conf.showLinkName = true;
+        this._conf.maxNameLen = 32;
+        this._conf.maxValueLen = 32;
 
         this.width = WIDTH - MARGIN * 2;
         this.height= HEIGHT - MARGIN * 2;
@@ -72,7 +72,7 @@
             .text("")
             .style("visibility", "hidden")
             .style("white-space", "nowrap")
-            .style("font", this.conf.fontSize + "px sans-serif");
+            .style("font", this._conf.fontSize + "px sans-serif");
 
         this.d3.tooltip = this.d3.container.append("div")
             .attr("class", "vtree-tooltip")
@@ -173,7 +173,7 @@
         var treePos = getTreePos(this.root, src, containerSize, treeSize);
 
         this.d3.zoomListener.translate(treePos);
-        this.d3.zoomListener.event(this.d3.g.transition().duration(this.conf.duration));
+        this.d3.zoomListener.event(this.d3.g.transition().duration(this._conf.duration));
 
         // transitionのために古い位置を隠しておく
         nodes.forEach(function (d) {
@@ -188,7 +188,7 @@
     VTree.prototype.createLinkName = function (nodeEnter, nodeUpdate) {
         var vt = this, showLinkName;
 
-        showLinkName = this.conf.showLinkName;
+        showLinkName = this._conf.showLinkName;
 
         nodeEnter.filter(function (d) { return d._vtLinkName; })
             .append("text")
@@ -202,14 +202,14 @@
 
                 return createLinkNameStr(vt, d);
             })
-            .attr("y", -this.conf.fontSize / 3)
+            .attr("y", -this._conf.fontSize / 3)
             .attr("text-anchor", "middle")
-            .style("font-size", this.conf.fontSize);
+            .style("font-size", this._conf.fontSize);
     };
 
 
     VTree.prototype.createDummyArray = function (nodeEnter, nodeUpdate) {
-        var r = this.conf.fontSize * 2 / 3;
+        var r = this._conf.fontSize * 2 / 3;
 
         nodeEnter.filter(function (d) { return d._vtIsDummy; })
             .append("circle")
@@ -271,12 +271,12 @@
             .on("click", createCollapseFunc(this));
 
         var nodeUpdate = node.transition()
-            .duration(this.conf.duration)
+            .duration(this._conf.duration)
             .attr("transform", function (d) { return tranStr(d.x, d.y); })
             .style("opacity", 1);
 
         node.exit().transition()
-            .duration(this.conf.duration)
+            .duration(this._conf.duration)
             .attr("transform", function () { return tranStr(src.x, src.y); })
             .style("opacity", 0)
             .remove();
@@ -303,12 +303,12 @@
             .style("opacity", 0);
 
         link.transition()
-            .duration(this.conf.duration)
+            .duration(this._conf.duration)
             .attr("d", diagonal)
             .style("opacity", 1);
 
         link.exit().transition()
-            .duration(this.conf.duration)
+            .duration(this._conf.duration)
             .attr("d", function () {
                 var o = { x: src.x, y: src.y };
 
@@ -368,7 +368,7 @@
 
 
     VTree.prototype.conf = function (name, val) {
-        var cf = this.conf;
+        var cf = this._conf;
 
         switch (name) {
         case "showArrayNode":
@@ -561,7 +561,7 @@
             var children = null;
 
             if (d._vtChildren && d._vtChildren.len !== 0) {
-                if (vt.conf.showArrayNode) {
+                if (vt._conf.showArrayNode) {
                     children = d._vtChildren;
                 } else {
                     children = d._vtChildren.slice(0);  // copy
@@ -594,30 +594,30 @@
     function createSeparationFunc(vt) {
         return function (a, b) {
             if (a.parent !== b.parent) {
-                return vt.conf.nodeMargin << 2;
+                return vt._conf.nodeMargin << 2;
             }
 
-            return vt.conf.nodeMargin;
+            return vt._conf.nodeMargin;
         };
     }
 
 
     function createHSeparationFunc(vt) {
         return function (depth) {
-            return depth * (vt.conf.fontSize * 5);
+            return depth * (vt._conf.fontSize * 5);
         };
     }
 
 
     function createLinkNameStr(vt, d) {
-        if (!vt.conf.showArrayNode && d._vtIsArrayItem) {
+        if (!vt._conf.showArrayNode && d._vtIsArrayItem) {
             var s = [d._vtArrayName, "[", d._vtArrayIndex, "]"].join("");
         } else {
             s = d._vtLinkName || "";
         }
 
-        if (s.length > vt.conf.maxNameLen) {
-            s = s.substring(0, vt.conf.maxNameLen) + "...";
+        if (s.length > vt._conf.maxNameLen) {
+            s = s.substring(0, vt._conf.maxNameLen) + "...";
         }
 
         return s;
@@ -651,12 +651,12 @@
             return 0;
         }
 
-        var maxW = vt.conf.fontSize / 2;
+        var maxW = vt._conf.fontSize / 2;
 
         if (col === 0) {
-            var maxLen = vt.conf.maxNameLen;
+            var maxLen = vt._conf.maxNameLen;
         } else {
-            maxLen = vt.conf.maxValueLen;
+            maxLen = vt._conf.maxValueLen;
         }
 
         for (var i = 0; i < tbl.length; i++) {
@@ -673,16 +673,16 @@
 
         vt.d3.ruler.text("");
 
-        return maxW + (vt.conf.tdPadding * 2);
+        return maxW + (vt._conf.tdPadding * 2);
     }
 
 
     function createNodeSizeFunc(vt) {
         return function (d) {
-            var fontSize = vt.conf.fontSize;
-            var pad = vt.conf.tdPadding;
+            var fontSize = vt._conf.fontSize;
+            var pad = vt._conf.tdPadding;
 
-            if (d._vtLinkName && vt.conf.showLinkName) {
+            if (d._vtLinkName && vt._conf.showLinkName) {
                 linkNameW = calcLinkNameWidth(vt, d);
             }
 
@@ -696,11 +696,11 @@
                 var maxW = fontSize + pad * 2;
                 var sumH = fontSize + pad * 2;
             } else {
-                if (vt.conf.showColumn[0]) {
+                if (vt._conf.showColumn[0]) {
                     maxNameW = calcMaxColumnWidth(vt, tbl, 0);
                 }
 
-                if (vt.conf.showColumn[1]) {
+                if (vt._conf.showColumn[1]) {
                     maxValW = calcMaxColumnWidth(vt, tbl, 1);
                 }
 
@@ -744,7 +744,7 @@
 
             vt.d3.tooltip.text(d._vtOriginal)
                 .style("left", (d3.event.pageX - vt.containerLeft) + "px")
-                .style("top",  (d3.event.pageY - vt.containerTop - vt.conf.fontSize) + "px");
+                .style("top",  (d3.event.pageY - vt.containerTop - vt._conf.fontSize) + "px");
         };
     }
 
@@ -834,7 +834,7 @@
             var nameW = calcMaxColumnWidth(vt, tbl, 0);  // 名前列の最大幅
             var sepX = -w2 + nameW;  // 縦の区切り線のx位置
 
-            if (vt.conf.showColumn[0] && vt.conf.showColumn[1]) {
+            if (vt._conf.showColumn[0] && vt._conf.showColumn[1]) {
                 a.push(["M", sepX, 0].join(" "));
                 a.push(["L", sepX, d.h].join(" "));
             }
@@ -856,7 +856,7 @@
 
 
     function createTableTexts(vt, nodes) {
-        var pad = vt.conf.tdPadding;
+        var pad = vt._conf.tdPadding;
 
         nodes.each(function (d) {
             var tbl = d._vtNameTbl;
@@ -869,7 +869,7 @@
             var nameW = calcMaxColumnWidth(vt, tbl, 0);
             var sepX = -w2;
 
-            if (vt.conf.showColumn[0]) {
+            if (vt._conf.showColumn[0]) {
                 sepX += nameW;
             }
 
@@ -886,13 +886,13 @@
                     var h = stepH * (rowNo + 1) - 2 - pad;
 
                     // 名前列
-                    if (vt.conf.showColumn[0]) {
-                        createTableText(vt, d3row, row[0],  -w2 + pad, h, "vtree-name-col", vt.conf.maxNameLen);
+                    if (vt._conf.showColumn[0]) {
+                        createTableText(vt, d3row, row[0],  -w2 + pad, h, "vtree-name-col", vt._conf.maxNameLen);
                     }
 
                     // 値列
-                    if (vt.conf.showColumn[1]) {
-                        createTableText(vt, d3row, row[1],  sepX + pad, h, "vtree-val-col", vt.conf.maxValueLen);
+                    if (vt._conf.showColumn[1]) {
+                        createTableText(vt, d3row, row[1],  sepX + pad, h, "vtree-val-col", vt._conf.maxValueLen);
                     }
                 });
         });
@@ -913,7 +913,7 @@
             .text(val)
             .attr("x", x)
             .attr("y", y)
-            .style("font-size", vt.conf.fontSize);
+            .style("font-size", vt._conf.fontSize);
 
         d3text.filter(function (d) { return d._vtOriginal.length > maxLen; })
             .on("mouseover", vt.d3.onMouseOver)
