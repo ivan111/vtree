@@ -30,6 +30,7 @@
         this._conf = {};
 
         this._conf.fontSize = 14;
+        this._conf.heightFactor = 5;
         this._conf.nodeMargin = 8;
         this._conf.tdPadding = 4;
         this._conf.duration = 768;
@@ -216,33 +217,16 @@
             .attr("class", "vtree-dummy")
             .attr("cy", r )
             .attr("r", r );
-
-        nodeUpdate.selectAll("circle")
-            .style("fill", function (d) {
-                if (d._vtHiddenChildren) {
-                    return "lightsteelblue";
-                }
-
-                return "white";
-            } );
     };
 
 
     VTree.prototype.createTables = function (node, nodeEnter, nodeUpdate) {
-        // create table border
         nodeEnter.filter(function (d) { return !d._vtIsDummy; })
             .append("path")
             .attr("class", "vtree-table");
 
         nodeUpdate.selectAll(".vtree-table")
-            .attr("d", createTableBorderPathFunc(this))
-            .style("fill", function (d) {
-                if (d._vtHiddenChildren) {
-                    return "lightsteelblue";
-                }
-
-                return "white";
-            });
+            .attr("d", createTableBorderPathFunc(this));
 
         node.selectAll("g.vtree-row").remove();
 
@@ -265,13 +249,14 @@
             });
 
         var nodeEnter = node.enter().append("g")
-            .attr("class", "vtree-node")
+            .attr("class", setTreeNodeClass)
             .attr("transform", function () { return tranStr(src.x0, src.y0); })
             .style("opacity", 0)
             .on("click", createCollapseFunc(this));
 
         var nodeUpdate = node.transition()
             .duration(this._conf.duration)
+            .attr("class", setTreeNodeClass)
             .attr("transform", function (d) { return tranStr(d.x, d.y); })
             .style("opacity", 1);
 
@@ -285,6 +270,21 @@
 
         this.createTables(node, nodeEnter, nodeUpdate);
     };
+
+
+    function setTreeNodeClass(d) {
+        var a = ["vtree-node"];
+
+        if (d._vtClassName) {
+            a.push(d._vtClassName);
+        }
+
+        if (d._vtHiddenChildren) {
+            a.push("collapsed");
+        }
+
+        return a.join(" ");
+    }
 
 
     VTree.prototype.createLinks = function (src, links) {
@@ -402,6 +402,10 @@
 
             break;
 
+        case "heightFactor":
+            setNumberConf(cf, name, val, 1, 10);
+            break;
+
         case "nodeMargin":
             setNumberConf(cf, name, val, 1, 100);
             break;
@@ -444,6 +448,15 @@
     }
 
 
+    function addNames(d, tbl) {
+        d._vtNameTbl = [];
+
+        tbl.forEach(function (row) {
+            d._vtNameTbl.push([{ val: row[0] }, { val: row[1] }]);
+        });
+    }
+
+
     function setLinkName(d, name, index) {
         if (index || index === 0) {
             name = ["[", index, "]"].join("");
@@ -464,30 +477,71 @@
     }
 
 
-    function setVtreeInfo(d) {
-        var i, name, data, item, type, dummy;
+    function addChildren(d, children) {
+        d._vtChildren = children;
+    }
 
-        for (name in d) {
+
+    VTree.prototype.setVtreeInfo = function (d) {
+        setVtreeInfoVTree(d);
+    };
+
+
+    function setVtreeInfo(d) {
+        // ---- VTree 形式
+        if (d.getVTreeTable) {
+            setVtreeInfoVTree(d);
+
+            if (d.getVTreeChildren) {
+                var children = d.getVTreeChildren();
+
+                children.forEach(function (child) {
+                    setVtreeInfo(child);
+                });
+            }
+
+            return;
+        }
+
+        // ---- JSON 形式
+        setVtreeInfoJSON(d);
+    }
+
+
+    function setVtreeInfoVTree(d) {
+        addNames(d, d.getVTreeTable());
+
+        d._vtClassName = d.vtreeClassName;
+
+        if (d.getVTreeChildren) {
+            var children = d.getVTreeChildren();
+            addChildren(d, children);
+
+            children.forEach(function (child) {
+                setVtreeInfo(child);
+            });
+        }
+    }
+
+
+    function setVtreeInfoJSON(d) {
+        for (var name in d) {
             if (!d.hasOwnProperty(name)) {
                 continue;
             }
 
-            if (name.length >= 3 && name[0] === "_" && name[1] === "v" && name[2] === "t") {
+            if (startsWith(name, "_vt")) {
                 continue;
             }
 
-            if (name === "_PyType") {
-                continue;
-            }
-
-            data = d[name];
+            var data = d[name];
             delete d[name];
 
             if (isArray(data)) {
                 if (d._vtIsDummy) {
-                    for (i = 0; i < data.length; i++) {
-                        item = data[i];
-                        type = typeof item;
+                    for (var i = 0; i < data.length; i++) {
+                        var item = data[i];
+                        var type = typeof item;
 
                         if (item === null || type === "string" || type === "number" || type === "boolean") {
                             item = { name: item };
@@ -501,7 +555,7 @@
                         setVtreeInfo(item);
                     }
                 } else {
-                    dummy = {};
+                    var dummy = {};
                     dummy._vtIsDummy = true;
                     dummy[name] = data;
 
@@ -604,7 +658,7 @@
 
     function createHSeparationFunc(vt) {
         return function (depth) {
-            return depth * (vt._conf.fontSize * 5);
+            return depth * (vt._conf.fontSize * vt._conf.heightFactor);
         };
     }
 
@@ -706,23 +760,6 @@
 
                 maxW = maxNameW + maxValW;
                 sumH = (fontSize + pad * 2) * tbl.length;
-            }
-
-            if (vt._mode === vt.MODE_PYTHON_AST && d._PyType) {
-                vt.d3.ruler.style("font-weight", "bold");
-                vt.d3.ruler.text(d._PyType);
-                w = vt.d3.ruler[0][0].offsetWidth;
-                w += pad * 2;
-                vt.d3.ruler.text("");
-                vt.d3.ruler.style("font-weight", "normal");
-
-                if (w > maxW) {
-                    maxW = w;
-                }
-
-                if (tbl && tbl.length !== 0) {
-                    sumH += fontSize + pad * 2;
-                }
             }
 
             d._vtWidth = maxW;
@@ -923,5 +960,14 @@
 
     function tranStr(x, y) {
          return ["translate(", x, ",", y, ")"].join("");
+    }
+
+
+    function startsWith(str, pattern) {
+        if (!str) {
+            return false;
+        }
+
+        return str.indexOf(pattern) === 0;
     }
 })();
