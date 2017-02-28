@@ -378,9 +378,25 @@
 
     function d3_layout_hierarchyLinks(nodes) {
         return d3.merge(nodes.map(function (parent) {
-            return (parent.children || []).map(function (child) {
-                return { source: parent, target: child };
-            });
+            var result = [];
+            var children = parent.children || [];
+            var i;
+
+            for (i = 0; i < children.length; i++) {
+                var child = children[i];
+
+                if (child._vtIsArrayItem) {
+                    if (child._vtArrayIndex === 0) {
+                        result.push({ source: parent, target: child });
+                    } else {
+                        result.push({ source: children[i - 1], target: child });
+                    }
+                } else {
+                    result.push({ source: parent, target: child });
+                }
+            }
+
+            return result;
         }));
     }
 

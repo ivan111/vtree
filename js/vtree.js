@@ -31,10 +31,9 @@
 
         this._conf.fontSize = 14;
         this._conf.heightFactor = 5;
-        this._conf.nodeMargin = 8;
+        this._conf.nodeMargin = 20;
         this._conf.tdPadding = 4;
         this._conf.duration = 768;
-        this._conf.showArrayNode = true;
         this._conf.showColumn = [true, true];
         this._conf.showLinkName = true;
         this._conf.maxNameLen = 32;
@@ -86,7 +85,13 @@
             .nodeSize(createNodeSizeFunc(this));
 
         this.d3.diagonal = d3.svg.diagonal()
-            .projection(function (d) { return [d.x, d.y]; });
+            .projection(function (d) {
+                if (d._vtIsArrayItem) {
+                    return [d.x, d.y + d.h / 2];
+                } else {
+                    return [d.x, d.y];
+                }
+            });
 
 
         this.d3.onMouseOver = createTooltipOnMouseOverFunc(this);
@@ -371,10 +376,6 @@
         var cf = this._conf;
 
         switch (name) {
-        case "showArrayNode":
-            cf.showArrayNode= !!val;
-            break;
-
         case "showLinkName":
             cf.showLinkName = !!val;
             break;
@@ -539,6 +540,7 @@
 
             if (isArray(data)) {
                 if (d._vtIsDummy) {
+
                     for (var i = 0; i < data.length; i++) {
                         var item = data[i];
                         var type = typeof item;
@@ -615,28 +617,24 @@
             var children = null;
 
             if (d._vtChildren && d._vtChildren.len !== 0) {
-                if (vt._conf.showArrayNode) {
-                    children = d._vtChildren;
-                } else {
-                    children = d._vtChildren.slice(0);  // copy
+                children = d._vtChildren.slice(0);  // copy
 
-                    for (var i = children.length - 1; i >= 0; i--) {
-                        if (children[i]._vtIsDummy) {
-                            var args = [i, 1];
+                for (var i = children.length - 1; i >= 0; i--) {
+                    if (children[i]._vtIsDummy) {
+                        var args = [i, 1];
 
-                            if (children[i]._vtChildren) {
-                                args = args.concat(children[i]._vtChildren);
-                            } else if (children[i]._vtHiddenChildren) {
-                                args = args.concat(children[i]._vtHiddenChildren);
-                            }
-
-                            children.splice.apply(children, args);
+                        if (children[i]._vtChildren) {
+                            args = args.concat(children[i]._vtChildren);
+                        } else if (children[i]._vtHiddenChildren) {
+                            args = args.concat(children[i]._vtHiddenChildren);
                         }
-                    }
 
-                    if (children.length === 0) {
-                        children = null;
+                        children.splice.apply(children, args);
                     }
+                }
+
+                if (children.length === 0) {
+                    children = null;
                 }
             }
 
@@ -664,7 +662,7 @@
 
 
     function createLinkNameStr(vt, d) {
-        if (!vt._conf.showArrayNode && d._vtIsArrayItem) {
+        if (d._vtIsArrayItem) {
             var s = [d._vtArrayName, "[", d._vtArrayIndex, "]"].join("");
         } else {
             s = d._vtLinkName || "";

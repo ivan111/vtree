@@ -6,33 +6,16 @@
 <title>JSON Tree Visualizer</title>
 
 <!-- stylesheets -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <link rel="stylesheet" href="css/vtree.css" type="text/css"/>
 
 <!-- third-party javascript -->
-<script src="js/d3.js"></script>
-<!-- <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
 <!-- our javascript -->
 <script src="js/layout.vtree.js"></script>
 <script src="js/vtree.js"></script>
 <!-- <script src="js/vtree.min.js"></script> -->
-
-<style>
-fieldset {
-    margin: 8px;
-    padding: 4px;
-    height: 68px;
-    float: left;
-    display: inline;
-    white-space: nowrap;
-}
-
-
-fieldset input {
-    margin: 4px;
-    padding: 4px;
-}
-</style>
 
 <script type="text/javascript">
 window.onload = function () {
@@ -54,7 +37,6 @@ window.onload = function () {
         }
     };
 
-    document.getElementById("showArrayNode").onclick = showHandler;
     document.getElementById("showLinkName").onclick = showHandler;
     document.getElementById("showColumn0").onclick = showHandler;
     document.getElementById("showColumn1").onclick = showHandler;
@@ -83,61 +65,53 @@ window.onload = function () {
 </head>
 
 <body>
+  <div class="container">
 
-<a href="/">Home</a>
+    <h1>JSON Tree Visualizer</h1>
 
-<h1>JSON Tree Visualizer</h1>
+    <p style="text-align: right;">Ver 0.1.9.1.9.55 <a href="https://github.com/ivan111/vtree">github</a></p>
 
-<p style="text-align: right;">Ver 0.1.9.1.9.1 <a href="https://github.com/ivan111/vtree">github</a></p>
+    <p>You can convert JSON strings into tree diagrams. For example, it is used to show AST(Abstract Syntax Tree) as tree diagrams for debugging. In that case, offcourse, you need to translate AST into JSON.</p>
 
-<p style="color: red;">This software converts JSON strings into tree diagrams. For example, it is used to show you AST(Abstract Syntax Tree) as tree diagrams for debugging. In that case, offcourse, you need to translate AST into JSON.</p>
+    <div class="row">
+      <textarea id="from-text" rows="8" cols="80">
+        ["FunctionLiteral", {"name":""}, ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":1} ] ] ], ["IfStatement", ["CompareOperation", {"op":"GT"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":0} ] ], ["Block", ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"y"} ], ["BinaryOperation", {"op":"ADD"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":2} ] ] ] ], ["ExpressionStatement", ["Call", ["VariableProxy", {"name":"print"} ], ["VariableProxy", {"name":"y"} ] ] ] ], ["EmptyStatement"] ] ]
+      </textarea>
+    </div>
 
-<p style="color: green;">JSON文字列を木構造の図に変換します。例えば、デバッグのためにAST(抽象構文木)を表示することに使えます。もきろん、その場合には、ASTをJSONに変換する必要があります。</p>
+    <div class="row">
 
-<p style="color: blue;">JSON Фёдор Миха́йлович Достое́вский. Борщ AST(Иван Карамазов) вкусный. Я также хотел пирожки.</p>
+      <div class="col-xs-2">
+        <input id="go-button" class="btn btn-primary" type="button" value="Visualize">
+      </div>
 
+      <div class="col-xs-5">
+        <label>Show</label>
+        <input id="showLinkName" type="checkbox" value="showLinkName" checked>Link Name&nbsp;&nbsp;
+        <input id="showColumn0" type="checkbox" value="showColumn0" checked>Column 1&nbsp;&nbsp;
+        <input id="showColumn1" type="checkbox" value="showColumn1" checked>Column 2&nbsp;&nbsp;
+      </div>
 
-<div>
-<textarea id="from-text" rows="8" cols="80">
-["FunctionLiteral", {"name":""}, ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":1} ] ] ], ["IfStatement", ["CompareOperation", {"op":"GT"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":0} ] ], ["Block", ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"y"} ], ["BinaryOperation", {"op":"ADD"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":2} ] ] ] ], ["ExpressionStatement", ["Call", ["VariableProxy", {"name":"print"} ], ["VariableProxy", {"name":"y"} ] ] ] ], ["EmptyStatement"] ] ]
-</textarea>
-</div>
+      <div class="col-xs-5">
+        <label>Max Column 1 Len: 
+          <input id="maxNameLen" type="number" min="1" max="256" step="10" size="3" value="32">
+        </label>
+        <label>Max Column 2 Len: 
+          <input id="maxValueLen" type="number" min="1" max="256" step="10" size="3" value="32">
+        </label>
+      </div>
 
-<div>
+    </div>
 
-<fieldset>
-<legend>Functions</legend>
-<input id="go-button" type="button" value="Visualize">
-</fieldset>
+    <div class="row" style="clear: both;">
+    </div>
 
-<fieldset>
-<legend>Show</legend>
-<input id="showArrayNode" type="checkbox" value="showArrayNode" checked>Array Node&nbsp;&nbsp;
-<input id="showLinkName" type="checkbox" value="showLinkName" checked>Link Name&nbsp;&nbsp;
-<input id="showColumn0" type="checkbox" value="showColumn0" checked>Column 1&nbsp;&nbsp;
-<input id="showColumn1" type="checkbox" value="showColumn1" checked>Column 2&nbsp;&nbsp;
-</fieldset>
-
-<fieldset>
-<legend>Max Length</legend>
-<label>Column 1: 
-<input id="maxNameLen" type="number" min="1" max="256" step="10" size="3" value="32">
-</label>
-<label>Column 2: 
-<input id="maxValueLen" type="number" min="1" max="256" step="10" size="3" value="32">
-</label>
-</fieldset>
-
-</div>
-
-<div style="clear: both;">
-</div>
-
-<div id="container"></div>
+    <div id="container"></div>
 
 
-<p style="text-align: right;">Created Date: 2014-07-27</p>
+    <p style="text-align: right;">Created Date: 2014-07-27, Modified Date: 2017-02-28</p>
 
+  </div>
 </body>
 
 </html>

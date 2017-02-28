@@ -27,7 +27,7 @@ svg.vtree .vtree-node text {
 
 svg.vtree .vtree-link {
     fill: none;
-    stroke: #ccc;
+    stroke: #888;
     stroke-width: 2px;
 }
 
