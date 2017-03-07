@@ -1,277 +1,373 @@
 /* global d3 */
 
-const vtreeLayout = require('./layout.vtree.js')
+const vtreeLayout = require('./layout.vtree.js');
 
-const WIDTH = 960
-const HEIGHT = 800
-const MARGIN = 20
+const WIDTH = 960;
+const HEIGHT = 800;
+const MARGIN = 20;
 
-const RE_NULL = /^\s*null\s*$/
+const RE_NULL = /^\s*null\s*$/;
 
 
 module.exports = function (container) {
-  return new VTree(container)
+  return new VTree(container);
 }
 
 
-function VTree(container) {
-  this.container = container;
+class VTree {
+  constructor(container) {
+    this.container = container;
 
-  this.initId();
-  this.initConf();
-  this.initD3Objects();
-}
+    this.initId();
+    this.initConf();
+    this.initD3Objects();
+  }
 
+  initId() {
+    this.curMaxId = 0;
+  }
 
-VTree.prototype.initConf = function () {
-  this._conf = {};
+  initConf() {
+    this._conf = {};
 
-  this._conf.fontSize = 14;
-  this._conf.heightFactor = 5;
-  this._conf.nodeMargin = 20;
-  this._conf.tdPadding = 4;
-  this._conf.duration = 768;
-  this._conf.showColumn = [true, true];
-  this._conf.showLinkName = true;
-  this._conf.maxNameLen = 32;
-  this._conf.maxValueLen = 32;
+    this._conf.fontSize = 14;
+    this._conf.heightFactor = 5;
+    this._conf.nodeMargin = 20;
+    this._conf.tdPadding = 4;
+    this._conf.duration = 768;
+    this._conf.showColumn = [true, true];
+    this._conf.showLinkName = true;
+    this._conf.maxNameLen = 32;
+    this._conf.maxValueLen = 32;
 
-  this.width = WIDTH - MARGIN * 2;
-  this.height= HEIGHT - MARGIN * 2;
+    this.width = WIDTH - MARGIN * 2;
+    this.height= HEIGHT - MARGIN * 2;
 
-  this.containerLeft = this.container.getBoundingClientRect().left;
-  this.containerTop = this.container.getBoundingClientRect().top;
-};
+    this.containerLeft = this.container.getBoundingClientRect().left;
+    this.containerTop = this.container.getBoundingClientRect().top;
+  }
 
+  initD3Objects() {
+    this.d3 = {};
 
-VTree.prototype.initD3Objects = function () {
-  this.d3 = {};
+    this.d3.container = d3.select(this.container)
+      .text("")
+      .style("position", "relative");
 
-  this.d3.container = d3.select(this.container)
-    .text("")
-    .style("position", "relative");
+    this.d3.zoomListener = d3.behavior.zoom()
+      .scaleExtent([1, 2])
+      .on("zoom", createZoomFunc(this));
 
-  this.d3.zoomListener = d3.behavior.zoom()
-    .scaleExtent([1, 2])
-    .on("zoom", createZoomFunc(this));
+    this.d3.svg = this.d3.container.append("svg")
+      .attr("class", "vtree")
+      .attr("width", this.width)
+      .attr("height", this.height)
+      .call(this.d3.zoomListener);
 
-  this.d3.svg = this.d3.container.append("svg")
-    .attr("class", "vtree")
-    .attr("width", this.width)
-    .attr("height", this.height)
-    .call(this.d3.zoomListener);
+    this.d3.g = this.d3.svg.append("g")
+      .attr("transform", tranStr(MARGIN, MARGIN));
 
-  this.d3.g = this.d3.svg.append("g")
-    .attr("transform", tranStr(MARGIN, MARGIN));
+    // the ruler for the width of the string contained by an SVG item
+    this.d3.ruler = this.d3.container.append("span")
+      .text("")
+      .style("visibility", "hidden")
+      .style("white-space", "nowrap")
+      .style("font", this._conf.fontSize + "px sans-serif");
 
-  // 文字のサイズを測るための定規
-  this.d3.ruler = this.d3.container.append("span")
-    .text("")
-    .style("visibility", "hidden")
-    .style("white-space", "nowrap")
-    .style("font", this._conf.fontSize + "px sans-serif");
+    this.d3.tooltip = this.d3.container.append("div")
+      .attr("class", "vtree-tooltip")
+      .style("opacity", 0 );
 
-  this.d3.tooltip = this.d3.container.append("div")
-    .attr("class", "vtree-tooltip")
-    .style("opacity", 0 );
+    this.d3.tree = vtreeLayout()
+      .children(createChildrenFunc(this))
+      .separation(createSeparationFunc(this))
+      .hSeparation(createHSeparationFunc(this))
+      .nodeSize(createNodeSizeFunc(this));
 
-  this.d3.tree = vtreeLayout()
-    .children(createChildrenFunc(this))
-    .separation(createSeparationFunc(this))
-    .hSeparation(createHSeparationFunc(this))
-    .nodeSize(createNodeSizeFunc(this));
+    this.d3.diagonal = d3.svg.diagonal()
+      .projection(function (d) {
+        if (d._vtIsArrayItem) {
+          return [d.x, d.y + d.h / 2];
+        } else {
+          return [d.x, d.y];
+        }
+      });
 
-  this.d3.diagonal = d3.svg.diagonal()
-    .projection(function (d) {
-      if (d._vtIsArrayItem) {
-        return [d.x, d.y + d.h / 2];
-      } else {
-        return [d.x, d.y];
-      }
-    });
+    this.d3.onMouseOver = createTooltipOnMouseOverFunc(this);
+    this.d3.onMouseOut = createTooltipOnMouseOutFunc(this);
+  }
 
+  newId() {
+    return ++this.curMaxId;
+  }
 
-  this.d3.onMouseOver = createTooltipOnMouseOverFunc(this);
-  this.d3.onMouseOut = createTooltipOnMouseOutFunc(this);
-
-};
-
-
-VTree.prototype.initId = function () {
-  this.curMaxId = 0;
-};
-
-
-VTree.prototype.newId = function () {
-  return ++this.curMaxId;
-};
-
-
-VTree.prototype.onError = function (listener) {
-  this.onErrorListener = listener;
-
-  return this;
-};
-
-
-VTree.prototype.data = function (data) {
-  if (!data) {
-    this.root = null;
+  onError(listener) {
+    this.onErrorListener = listener;
 
     return this;
   }
 
-  var type = typeof data;
+  data(data) {
+    if (!data) {
+      this.root = null;
 
-  if (type === "string") {
-    var json = str2json(data);
-
-    type = typeof json;
-  } else {
-    json = data;
-  }
-
-  if ((json === null && RE_NULL.test(data)) || type === "string" || type === "number" || type === "boolean") {
-    json = { name: json };
-  } else if (isArray(json)) {
-    json = { name: "/", children: json };
-  }
-
-  this.root = json;
-
-  if (this.root) {
-    setVtreeInfo(this.root);
-
-    // transitionの開始位置
-    this.root.x0 = this.width / 2;
-    this.root.y0 = this.height / 2;
-  } else {
-    if (this.onErrorListener) {
-      this.onErrorListener("Parse Error");
-    }
-  }
-
-  return this;
-};
-
-
-VTree.prototype.update = function (src) {
-  if (!src) {
-    if (!this.root) {
       return this;
     }
 
-    src = this.root;
+    var type = typeof data;
+
+    if (type === "string") {
+      var json = str2json(data);
+
+      type = typeof json;
+    } else {
+      json = data;
+    }
+
+    if ((json === null && RE_NULL.test(data)) || type === "string" || type === "number" || type === "boolean") {
+      json = { name: json };
+    } else if (isArray(json)) {
+      json = { name: "/", children: json };
+    }
+
+    this.root = json;
+
+    if (this.root) {
+      setVtreeInfo(this.root);
+
+      // an start pos of transition
+      this.root.x0 = this.width / 2;
+      this.root.y0 = this.height / 2;
+    } else {
+      if (this.onErrorListener) {
+        this.onErrorListener("Parse Error");
+      }
+    }
+
+    return this;
   }
 
-  var treeSize = {};
-
-  var nodes = this.d3.tree(this.root, undefined, treeSize);
-  var links = this.d3.tree.links(nodes);
-
-  this.createNodes(src, nodes);
-  this.createLinks(src, links);
-
-  var containerSize = { width: this.width, height: this.height };
-  var treePos = getTreePos(this.root, src, containerSize, treeSize);
-
-  this.d3.zoomListener.translate(treePos);
-  this.d3.zoomListener.event(this.d3.g.transition().duration(this._conf.duration));
-
-  // transitionのために古い位置を隠しておく
-  nodes.forEach(function (d) {
-    d.x0 = d.x;
-    d.y0 = d.y;
-  });
-
-  return this;
-};
-
-
-VTree.prototype.createLinkName = function (nodeEnter, nodeUpdate) {
-  var vt = this, showLinkName;
-
-  showLinkName = this._conf.showLinkName;
-
-  nodeEnter.filter(function (d) { return d._vtLinkName; })
-    .append("text")
-    .attr("class", "vtree-link-name");
-
-  nodeUpdate.selectAll(".vtree-link-name")
-    .text(function (d) {
-      if (!showLinkName) {
-        return "";
+  update(src) {
+    if (!src) {
+      if (!this.root) {
+        return this;
       }
 
-      return createLinkNameStr(vt, d);
-    })
-  .attr("y", -this._conf.fontSize / 3)
-    .attr("text-anchor", "middle")
-    .style("font-size", this._conf.fontSize);
-};
+      src = this.root;
+    }
 
+    var treeSize = {};
 
-VTree.prototype.createDummyArray = function (nodeEnter) {
-  var r = this._conf.fontSize * 2 / 3;
+    var nodes = this.d3.tree(this.root, undefined, treeSize);
+    var links = this.d3.tree.links(nodes);
 
-  nodeEnter.filter(function (d) { return d._vtIsDummy; })
-    .append("circle")
-    .attr("class", "vtree-dummy")
-    .attr("cy", r )
-    .attr("r", r );
-};
+    this.createNodes(src, nodes);
+    this.createLinks(src, links);
 
+    var containerSize = { width: this.width, height: this.height };
+    var treePos = getTreePos(this.root, src, containerSize, treeSize);
 
-VTree.prototype.createTables = function (node, nodeEnter, nodeUpdate) {
-  nodeEnter.filter(function (d) { return !d._vtIsDummy; })
-    .append("path")
-    .attr("class", "vtree-table");
+    this.d3.zoomListener.translate(treePos);
+    this.d3.zoomListener.event(this.d3.g.transition().duration(this._conf.duration));
 
-  nodeUpdate.selectAll(".vtree-table")
-    .attr("d", createTableBorderPathFunc(this));
-
-  node.selectAll("g.vtree-row").remove();
-
-  createTableTexts(this, nodeUpdate);
-
-  this.createDummyArray(nodeEnter, nodeUpdate);
-};
-
-
-VTree.prototype.createNodes = function (src, nodes) {
-  var vt = this;
-
-  var node = this.d3.g.selectAll("g.vtree-node")
-    .data(nodes, function (d) {
-      if (!d.id) {
-        d.id = vt.newId();
-      }
-
-      return d.id;
+    // store an old position for transition
+    nodes.forEach(function (d) {
+      d.x0 = d.x;
+      d.y0 = d.y;
     });
 
-  var nodeEnter = node.enter().append("g")
-    .attr("class", setTreeNodeClass)
-    .attr("transform", function () { return tranStr(src.x0, src.y0); })
+    return this;
+  }
+
+  createLinkName(nodeEnter, nodeUpdate) {
+    var vt = this, showLinkName;
+
+    showLinkName = this._conf.showLinkName;
+
+    nodeEnter.filter(function (d) { return d._vtLinkName; })
+      .append("text")
+      .attr("class", "vtree-link-name");
+
+    nodeUpdate.selectAll(".vtree-link-name")
+      .text(function (d) {
+        if (!showLinkName) {
+          return "";
+        }
+
+        return createLinkNameStr(vt, d);
+      })
+    .attr("y", -this._conf.fontSize / 3)
+      .attr("text-anchor", "middle")
+      .style("font-size", this._conf.fontSize);
+  }
+
+  createDummyArray(nodeEnter) {
+    var r = this._conf.fontSize * 2 / 3;
+
+    nodeEnter.filter(function (d) { return d._vtIsDummy; })
+      .append("circle")
+      .attr("class", "vtree-dummy")
+      .attr("cy", r )
+      .attr("r", r );
+  }
+
+  createTables(node, nodeEnter, nodeUpdate) {
+    nodeEnter.filter(function (d) { return !d._vtIsDummy; })
+      .append("path")
+      .attr("class", "vtree-table");
+
+    nodeUpdate.selectAll(".vtree-table")
+      .attr("d", createTableBorderPathFunc(this));
+
+    node.selectAll("g.vtree-row").remove();
+
+    createTableTexts(this, nodeUpdate);
+
+    this.createDummyArray(nodeEnter, nodeUpdate);
+  }
+
+  createNodes(src, nodes) {
+    var vt = this;
+
+    var node = this.d3.g.selectAll("g.vtree-node")
+      .data(nodes, function (d) {
+        if (!d.id) {
+          d.id = vt.newId();
+        }
+
+        return d.id;
+      });
+
+    var nodeEnter = node.enter().append("g")
+      .attr("class", setTreeNodeClass)
+      .attr("transform", function () { return tranStr(src.x0, src.y0); })
+      .style("opacity", 0)
+      .on("click", createCollapseFunc(this));
+
+    var nodeUpdate = node.transition()
+      .duration(this._conf.duration)
+      .attr("class", setTreeNodeClass)
+      .attr("transform", function (d) { return tranStr(d.x, d.y); })
+      .style("opacity", 1);
+
+    node.exit().transition()
+      .duration(this._conf.duration)
+      .attr("transform", function () { return tranStr(src.x, src.y); })
+      .style("opacity", 0)
+      .remove();
+
+    this.createLinkName(nodeEnter, nodeUpdate);
+
+    this.createTables(node, nodeEnter, nodeUpdate);
+  }
+
+  createLinks(src, links) {
+    var diagonal = this.d3.diagonal;
+
+    var link = this.d3.g.selectAll("path.vtree-link")
+      .data(links, function (d) { return d.target.id; });
+
+    link.enter().insert("path", "g")
+      .attr("class", "vtree-link")
+      .attr("d", function () {
+        var o = { x: src.x0, y: src.y0 };
+
+        return diagonal({ source: o, target: o });
+      })
+    .style("opacity", 0);
+
+    link.transition()
+      .duration(this._conf.duration)
+      .attr("d", diagonal)
+      .style("opacity", 1);
+
+    link.exit().transition()
+      .duration(this._conf.duration)
+      .attr("d", function () {
+        var o = { x: src.x, y: src.y };
+
+        return diagonal({ source: o, target: o });
+      })
     .style("opacity", 0)
-    .on("click", createCollapseFunc(this));
+      .remove();
+  }
 
-  var nodeUpdate = node.transition()
-    .duration(this._conf.duration)
-    .attr("class", setTreeNodeClass)
-    .attr("transform", function (d) { return tranStr(d.x, d.y); })
-    .style("opacity", 1);
+  size(width, height) {
+    var w = getNumberConf(width, 32, 8096);
+    var h = getNumberConf(height, 32, 8096);
 
-  node.exit().transition()
-    .duration(this._conf.duration)
-    .attr("transform", function () { return tranStr(src.x, src.y); })
-    .style("opacity", 0)
-    .remove();
+    if (w === null || h === null) {
+      return this;
+    }
 
-  this.createLinkName(nodeEnter, nodeUpdate);
+    this.width = width;
+    this.height = height;
 
-  this.createTables(node, nodeEnter, nodeUpdate);
-};
+    this.d3.svg
+      .attr("width", width)
+      .attr("height", height);
+
+    return this;
+  }
+
+  conf(name, val) {
+    var cf = this._conf;
+
+    switch (name) {
+      case "showLinkName":
+        cf.showLinkName = !!val;
+        break;
+
+      case "showColumn0":
+        cf.showColumn[0] = !!val;
+
+        if (cf.showColumn[0] === false) {
+          cf.showColumn[1] = true;
+        }
+        break;
+
+      case "showColumn1":
+        cf.showColumn[1] = !!val;
+
+        if (cf.showColumn[1] === false) {
+          cf.showColumn[0] = true;
+        }
+        break;
+
+      case "fontSize":
+        setNumberConf(cf, name, val, 9, 32);
+
+        this.d3.ruler.style("font-size", cf.fontSize + "px");
+
+        break;
+
+      case "heightFactor":
+        setNumberConf(cf, name, val, 1, 10);
+        break;
+
+      case "nodeMargin":
+        setNumberConf(cf, name, val, 1, 100);
+        break;
+
+      case "animeDuration":
+        setNumberConf(cf, "duration", val, 10, 10000);
+        break;
+
+      case "maxNameLen":
+        setNumberConf(cf, name, val, 1, 1024);
+        break;
+
+      case "maxValueLen":
+        setNumberConf(cf, name, val, 1, 1024);
+        break;
+
+      default:
+        break;
+    }
+
+    return this;
+  }
+}
 
 
 function setTreeNodeClass(d) {
@@ -287,38 +383,6 @@ function setTreeNodeClass(d) {
 
   return a.join(" ");
 }
-
-
-VTree.prototype.createLinks = function (src, links) {
-  var diagonal = this.d3.diagonal;
-
-  var link = this.d3.g.selectAll("path.vtree-link")
-    .data(links, function (d) { return d.target.id; });
-
-  link.enter().insert("path", "g")
-    .attr("class", "vtree-link")
-    .attr("d", function () {
-      var o = { x: src.x0, y: src.y0 };
-
-      return diagonal({ source: o, target: o });
-    })
-  .style("opacity", 0);
-
-  link.transition()
-    .duration(this._conf.duration)
-    .attr("d", diagonal)
-    .style("opacity", 1);
-
-  link.exit().transition()
-    .duration(this._conf.duration)
-    .attr("d", function () {
-      var o = { x: src.x, y: src.y };
-
-      return diagonal({ source: o, target: o });
-    })
-  .style("opacity", 0)
-    .remove();
-};
 
 
 function getNumberConf (val, start, end) {
@@ -348,84 +412,6 @@ function setNumberConf(conf, name, val, start, end) {
 
   return false;
 }
-
-
-VTree.prototype.size = function (width, height) {
-  var w = getNumberConf(width, 32, 8096);
-  var h = getNumberConf(height, 32, 8096);
-
-  if (w === null || h === null) {
-    return this;
-  }
-
-  this.width = width;
-  this.height = height;
-
-  this.d3.svg
-    .attr("width", width)
-    .attr("height", height);
-
-  return this;
-};
-
-
-VTree.prototype.conf = function (name, val) {
-  var cf = this._conf;
-
-  switch (name) {
-    case "showLinkName":
-      cf.showLinkName = !!val;
-      break;
-
-    case "showColumn0":
-      cf.showColumn[0] = !!val;
-
-      if (cf.showColumn[0] === false) {
-        cf.showColumn[1] = true;
-      }
-      break;
-
-    case "showColumn1":
-      cf.showColumn[1] = !!val;
-
-      if (cf.showColumn[1] === false) {
-        cf.showColumn[0] = true;
-      }
-      break;
-
-    case "fontSize":
-      setNumberConf(cf, name, val, 9, 32);
-
-      this.d3.ruler.style("font-size", cf.fontSize + "px");
-
-      break;
-
-    case "heightFactor":
-      setNumberConf(cf, name, val, 1, 10);
-      break;
-
-    case "nodeMargin":
-      setNumberConf(cf, name, val, 1, 100);
-      break;
-
-    case "animeDuration":
-      setNumberConf(cf, "duration", val, 10, 10000);
-      break;
-
-    case "maxNameLen":
-      setNumberConf(cf, name, val, 1, 1024);
-      break;
-
-    case "maxValueLen":
-      setNumberConf(cf, name, val, 1, 1024);
-      break;
-
-    default:
-      break;
-  }
-
-  return this;
-};
 
 
 function isArray(obj) {
@@ -486,7 +472,7 @@ VTree.prototype.setVtreeInfo = function (d) {
 
 
 function setVtreeInfo(d) {
-  // ---- VTree 形式
+  // VTree format
   if (d.getVTreeTable) {
     setVtreeInfoVTree(d);
 
@@ -501,7 +487,7 @@ function setVtreeInfo(d) {
     return;
   }
 
-  // ---- JSON 形式
+  // JSON format
   setVtreeInfoJSON(d);
 }
 
@@ -811,7 +797,7 @@ function createCollapseFunc(vt) {
 }
 
 
-// 木が中央に表示されるような、木の左上位置を取得する
+// get the top-left position of the tree which displayed at center of the container
 function getTreePos(root, src, containerSize, treeSize) {
   var cW = containerSize.width;
   var cH = containerSize.height;
@@ -826,7 +812,7 @@ function getTreePos(root, src, containerSize, treeSize) {
 
     if (tH < cH) {
       y = (cH - tH) / 2;
-    } else {  // 木がコンテナに収まらない
+    } else {  // the tree beyond the container
       y = MARGIN;
     }
   } else {
@@ -853,8 +839,8 @@ function createTableBorderPathFunc(vt) {
 
     var w2 = d._vtWidth / 2;
 
-    // ---- 外枠
-    // 原点は、x方向は表の真ん中、y方向は表の一番上
+    // an outline border
+    // an origin point is (center, top)
     var a = [];
     a.push(["M", -w2, 0].join(" "));
     a.push(["L", w2, 0].join(" "));
@@ -862,16 +848,16 @@ function createTableBorderPathFunc(vt) {
     a.push(["L", -w2, d.h].join(" "));
     a.push("Z");
 
-    // ---- 縦線
-    var nameW = calcMaxColumnWidth(vt, tbl, 0);  // 名前列の最大幅
-    var sepX = -w2 + nameW;  // 縦の区切り線のx位置
+    // a vertical separator
+    var nameW = calcMaxColumnWidth(vt, tbl, 0);  // the max of the names
+    var sepX = -w2 + nameW;  // x of the vertical separator
 
     if (vt._conf.showColumn[0] && vt._conf.showColumn[1]) {
       a.push(["M", sepX, 0].join(" "));
       a.push(["L", sepX, d.h].join(" "));
     }
 
-    // ---- 横線
+    // horizontal borders
     var y = d.h / tbl.length;
     var stepH = d.h / tbl.length;
 
@@ -917,12 +903,12 @@ function createTableTexts(vt, nodes) {
 
         var h = stepH * (rowNo + 1) - 2 - pad;
 
-        // 名前列
+        // name columns
         if (vt._conf.showColumn[0]) {
           createTableText(vt, d3row, row[0],  -w2 + pad, h, "vtree-name-col", vt._conf.maxNameLen);
         }
 
-        // 値列
+        // value columns
         if (vt._conf.showColumn[1]) {
           createTableText(vt, d3row, row[1],  sepX + pad, h, "vtree-val-col", vt._conf.maxValueLen);
         }
@@ -931,7 +917,6 @@ function createTableTexts(vt, nodes) {
 }
 
 
-// 名前列または値列のテキストを１つ作る
 function createTableText(vt, d3row, d, x, y, clsName, maxLen) {
   d._vtOriginal = d.val || "";
 
