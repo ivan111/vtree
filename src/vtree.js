@@ -9,17 +9,30 @@ const MARGIN = 20;
 const RE_NULL = /^\s*null\s*$/;
 
 
-module.exports = function (container) {
-  return new VTree(container);
+module.exports = function (container, config = {}) {
+  return new VTree(container, config);
+}
+
+
+const defaultConfig = {
+  fontSize: 14,
+  heightFactor: 5,
+  nodeMargin: 20,
+  tdPadding: 4,
+  duration: 768,
+  showColumn: [true, true],
+  showLinkName: true,
+  maxNameLen: 32,
+  maxValueLen: 32
 }
 
 
 class VTree {
-  constructor(container) {
+  constructor(container, config) {
     this.container = container;
 
     this.initId();
-    this.initConf();
+    this.initConf(config);
     this.initD3Objects();
   }
 
@@ -27,18 +40,8 @@ class VTree {
     this.curMaxId = 0;
   }
 
-  initConf() {
-    this._conf = {};
-
-    this._conf.fontSize = 14;
-    this._conf.heightFactor = 5;
-    this._conf.nodeMargin = 20;
-    this._conf.tdPadding = 4;
-    this._conf.duration = 768;
-    this._conf.showColumn = [true, true];
-    this._conf.showLinkName = true;
-    this._conf.maxNameLen = 32;
-    this._conf.maxValueLen = 32;
+  initConf(config) {
+    this._conf = Object.assign({}, defaultConfig, config);
 
     this.width = WIDTH - MARGIN * 2;
     this.height= HEIGHT - MARGIN * 2;
