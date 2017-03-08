@@ -1,5 +1,7 @@
 /* global d3 */
 
+require("babel-polyfill");
+
 const vtreeLayout = require('./layout.vtree.js');
 
 const WIDTH = 960;
