@@ -1,5 +1,31 @@
 /* global d3 */
 
+/**
+ * custome fields:
+ *
+ * - getVTreeTable :
+ * - vtreeClassName :
+ *
+ * hidden node variables prefix '_vt'.
+ *
+ * - _vtChildren : node's children
+ * - _vtHiddenChildren : when collapsed, this has collapsed children.
+ *
+ * - _vtNameTbl : array. each item is [{ val: name }, { val: val }]
+ * - _vtLinkName : link name displayed above the node table.
+ * - _vtIsDummy :
+ * - _vtOriginalVal : this keeps the original field value even if the displayed value is ellipted.
+ * - _vtClassName : this has vtreeClassName field value. By this, users can set class names.
+ *
+ * - _vtMaxNameW : max name fields widths
+ * - _vtMaxValW : max value fields widths
+ * - _vtWidth : _vtMaxNameW + _vtMaxValW
+ *
+ * - _vtIsArrayItem :
+ * - _vtArrayIndex :
+ * - _vtArrayName :
+ */
+
 import vtreeLayout from './layout.vtree.js';
 import { updateLinks } from './svg/link.js';
 import { updateNodes } from './svg/node.js';
@@ -344,11 +370,6 @@ function addChildren(d, children) {
 }
 
 
-VTree.prototype.setVtreeInfo = function (d) {
-  setVtreeInfoVTree(d);
-};
-
-
 function setVtreeInfo(d) {
   // VTree format
   if (d.getVTreeTable) {
@@ -572,7 +593,7 @@ function createTooltipOnMouseOverFunc(vt) {
       .duration(200)
       .style('opacity', 0.9);
 
-    vt.d3.tooltip.text(d._vtOriginal)
+    vt.d3.tooltip.text(d._vtOriginalVal)
       .style('left', (d3.event.pageX - vt.containerLeft) + 'px')
       .style('top',  (d3.event.pageY - vt.containerTop - vt._conf.fontSize) + 'px');
   };

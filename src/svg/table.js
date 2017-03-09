@@ -107,7 +107,7 @@ function updateTableTexts(nodes, conf) {
 
 
 function updateTableText(d3row, d, x, y, clsName, conf) {
-  d._vtOriginal = d.val || '';
+  d._vtOriginalVal = d.val || '';
 
   var val = createTableStr(d.val, conf.maxLen);
 
@@ -121,7 +121,7 @@ function updateTableText(d3row, d, x, y, clsName, conf) {
     .attr('y', y)
     .style('font-size', conf.fontSize);
 
-  d3text.filter(function (d) { return d._vtOriginal.length > conf.maxLen; })
+  d3text.filter(function (d) { return d._vtOriginalVal.length > conf.maxLen; })
     ;
     /*
     .on('mouseover', vt.d3.onMouseOver)
