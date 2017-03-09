@@ -45,10 +45,6 @@ export function updateNodes(g, nodes, src, onClick, conf) {
 function setTreeNodeClass(d) {
   var a = ['vtree-node'];
 
-  if (d._vtClassName) {
-    a.push(d._vtClassName);
-  }
-
   if (d._vtHiddenChildren) {
     a.push('collapsed');
   }

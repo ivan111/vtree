@@ -1,11 +1,6 @@
 /* global d3 */
 
 /**
- * custome fields:
- *
- * - getVTreeTable :
- * - vtreeClassName :
- *
  * hidden node variables prefix '_vt'.
  *
  * - _vtChildren : node's children
@@ -15,7 +10,6 @@
  * - _vtLinkName : link name displayed above the node table.
  * - _vtIsDummy :
  * - _vtOriginalVal : this keeps the original field value even if the displayed value is ellipted.
- * - _vtClassName : this has vtreeClassName field value. By this, users can set class names.
  *
  * - _vtMaxNameW : max name fields widths
  * - _vtMaxValW : max value fields widths
@@ -336,15 +330,6 @@ function addName(d, name, val) {
 }
 
 
-function addNames(d, tbl) {
-  d._vtNameTbl = [];
-
-  tbl.forEach(function (row) {
-    d._vtNameTbl.push([{ val: row[0] }, { val: row[1] }]);
-  });
-}
-
-
 function setLinkName(d, name, index) {
   if (index || index === 0) {
     name = ['[', index, ']'].join('');
@@ -365,49 +350,7 @@ function addChildNode(d, name, child, index) {
 }
 
 
-function addChildren(d, children) {
-  d._vtChildren = children;
-}
-
-
 function setVtreeInfo(d) {
-  // VTree format
-  if (d.getVTreeTable) {
-    setVtreeInfoVTree(d);
-
-    if (d.getVTreeChildren) {
-      var children = d.getVTreeChildren();
-
-      children.forEach(function (child) {
-        setVtreeInfo(child);
-      });
-    }
-
-    return;
-  }
-
-  // JSON format
-  setVtreeInfoJSON(d);
-}
-
-
-function setVtreeInfoVTree(d) {
-  addNames(d, d.getVTreeTable());
-
-  d._vtClassName = d.vtreeClassName;
-
-  if (d.getVTreeChildren) {
-    var children = d.getVTreeChildren();
-    addChildren(d, children);
-
-    children.forEach(function (child) {
-      setVtreeInfo(child);
-    });
-  }
-}
-
-
-function setVtreeInfoJSON(d) {
   for (var name in d) {
     if (!d.hasOwnProperty(name)) {
       continue;
