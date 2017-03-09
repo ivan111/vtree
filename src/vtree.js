@@ -1,7 +1,5 @@
 /* global d3 */
 
-require("babel-polyfill");
-
 const vtreeLayout = require('./layout.vtree.js');
 
 const WIDTH = 960;
@@ -16,25 +14,12 @@ module.exports = function (container, config = {}) {
 }
 
 
-const defaultConfig = {
-  fontSize: 14,
-  heightFactor: 5,
-  nodeMargin: 20,
-  tdPadding: 4,
-  duration: 768,
-  showColumn: [true, true],
-  showLinkName: true,
-  maxNameLen: 32,
-  maxValueLen: 32
-}
-
-
 class VTree {
-  constructor(container, config) {
+  constructor(container) {
     this.container = container;
 
     this.initId();
-    this.initConf(config);
+    this.initConf();
     this.initD3Objects();
   }
 
@@ -42,8 +27,18 @@ class VTree {
     this.curMaxId = 0;
   }
 
-  initConf(config) {
-    this._conf = Object.assign({}, defaultConfig, config);
+  initConf() {
+    this._conf = {
+      fontSize: 14,
+      heightFactor: 5,
+      nodeMargin: 20,
+      tdPadding: 4,
+      duration: 768,
+      showColumn: [true, true],
+      showLinkName: true,
+      maxNameLen: 32,
+      maxValueLen: 32
+    }
 
     this.width = WIDTH - MARGIN * 2;
     this.height= HEIGHT - MARGIN * 2;
@@ -56,32 +51,33 @@ class VTree {
     this.d3 = {};
 
     this.d3.container = d3.select(this.container)
-      .text("")
-      .style("position", "relative");
+      .text('')
+      .style('position', 'relative');
 
     this.d3.zoomListener = d3.behavior.zoom()
       .scaleExtent([1, 2])
-      .on("zoom", createZoomFunc(this));
+      .on('zoom', createZoomFunc(this));
 
-    this.d3.svg = this.d3.container.append("svg")
-      .attr("class", "vtree")
-      .attr("width", this.width)
-      .attr("height", this.height)
+    this.d3.svg = this.d3.container.append('svg')
+      .attr('xmlns', 'http://www.w3.org/2000/svg')
+      .attr('class', 'vtree')
+      .attr('width', this.width)
+      .attr('height', this.height)
       .call(this.d3.zoomListener);
 
-    this.d3.g = this.d3.svg.append("g")
-      .attr("transform", tranStr(MARGIN, MARGIN));
+    this.d3.g = this.d3.svg.append('g')
+      .attr('transform', tranStr(MARGIN, MARGIN));
 
     // the ruler for the width of the string contained by an SVG item
-    this.d3.ruler = this.d3.container.append("span")
-      .text("")
-      .style("visibility", "hidden")
-      .style("white-space", "nowrap")
-      .style("font", this._conf.fontSize + "px sans-serif");
+    this.d3.ruler = this.d3.container.append('span')
+      .text('')
+      .style('visibility', 'hidden')
+      .style('white-space', 'nowrap')
+      .style('font', this._conf.fontSize + 'px sans-serif');
 
-    this.d3.tooltip = this.d3.container.append("div")
-      .attr("class", "vtree-tooltip")
-      .style("opacity", 0 );
+    this.d3.tooltip = this.d3.container.append('div')
+      .attr('class', 'vtree-tooltip')
+      .style('opacity', 0 );
 
     this.d3.tree = vtreeLayout()
       .children(createChildrenFunc(this))
@@ -121,7 +117,7 @@ class VTree {
 
     var type = typeof data;
 
-    if (type === "string") {
+    if (type === 'string') {
       var json = str2json(data);
 
       type = typeof json;
@@ -129,10 +125,10 @@ class VTree {
       json = data;
     }
 
-    if ((json === null && RE_NULL.test(data)) || type === "string" || type === "number" || type === "boolean") {
+    if ((json === null && RE_NULL.test(data)) || type === 'string' || type === 'number' || type === 'boolean') {
       json = { name: json };
     } else if (isArray(json)) {
-      json = { name: "/", children: json };
+      json = { name: '/', children: json };
     }
 
     this.root = json;
@@ -145,7 +141,7 @@ class VTree {
       this.root.y0 = this.height / 2;
     } else {
       if (this.onErrorListener) {
-        this.onErrorListener("Parse Error");
+        this.onErrorListener('Parse Error');
       }
     }
 
@@ -190,41 +186,41 @@ class VTree {
     showLinkName = this._conf.showLinkName;
 
     nodeEnter.filter(function (d) { return d._vtLinkName; })
-      .append("text")
-      .attr("class", "vtree-link-name");
+      .append('text')
+      .attr('class', 'vtree-link-name');
 
-    nodeUpdate.selectAll(".vtree-link-name")
+    nodeUpdate.selectAll('.vtree-link-name')
       .text(function (d) {
         if (!showLinkName) {
-          return "";
+          return '';
         }
 
         return createLinkNameStr(vt, d);
       })
-    .attr("y", -this._conf.fontSize / 3)
-      .attr("text-anchor", "middle")
-      .style("font-size", this._conf.fontSize);
+    .attr('y', -this._conf.fontSize / 3)
+      .attr('text-anchor', 'middle')
+      .style('font-size', this._conf.fontSize);
   }
 
   createDummyArray(nodeEnter) {
     var r = this._conf.fontSize * 2 / 3;
 
     nodeEnter.filter(function (d) { return d._vtIsDummy; })
-      .append("circle")
-      .attr("class", "vtree-dummy")
-      .attr("cy", r )
-      .attr("r", r );
+      .append('circle')
+      .attr('class', 'vtree-dummy')
+      .attr('cy', r )
+      .attr('r', r );
   }
 
   createTables(node, nodeEnter, nodeUpdate) {
     nodeEnter.filter(function (d) { return !d._vtIsDummy; })
-      .append("path")
-      .attr("class", "vtree-table");
+      .append('path')
+      .attr('class', 'vtree-table');
 
-    nodeUpdate.selectAll(".vtree-table")
-      .attr("d", createTableBorderPathFunc(this));
+    nodeUpdate.selectAll('.vtree-table')
+      .attr('d', createTableBorderPathFunc(this));
 
-    node.selectAll("g.vtree-row").remove();
+    node.selectAll('g.vtree-row').remove();
 
     createTableTexts(this, nodeUpdate);
 
@@ -234,7 +230,7 @@ class VTree {
   createNodes(src, nodes) {
     var vt = this;
 
-    var node = this.d3.g.selectAll("g.vtree-node")
+    var node = this.d3.g.selectAll('g.vtree-node')
       .data(nodes, function (d) {
         if (!d.id) {
           d.id = vt.newId();
@@ -243,22 +239,22 @@ class VTree {
         return d.id;
       });
 
-    var nodeEnter = node.enter().append("g")
-      .attr("class", setTreeNodeClass)
-      .attr("transform", function () { return tranStr(src.x0, src.y0); })
-      .style("opacity", 0)
-      .on("click", createCollapseFunc(this));
+    var nodeEnter = node.enter().append('g')
+      .attr('class', setTreeNodeClass)
+      .attr('transform', function () { return tranStr(src.x0, src.y0); })
+      .style('opacity', 0)
+      .on('click', createCollapseFunc(this));
 
     var nodeUpdate = node.transition()
       .duration(this._conf.duration)
-      .attr("class", setTreeNodeClass)
-      .attr("transform", function (d) { return tranStr(d.x, d.y); })
-      .style("opacity", 1);
+      .attr('class', setTreeNodeClass)
+      .attr('transform', function (d) { return tranStr(d.x, d.y); })
+      .style('opacity', 1);
 
     node.exit().transition()
       .duration(this._conf.duration)
-      .attr("transform", function () { return tranStr(src.x, src.y); })
-      .style("opacity", 0)
+      .attr('transform', function () { return tranStr(src.x, src.y); })
+      .style('opacity', 0)
       .remove();
 
     this.createLinkName(nodeEnter, nodeUpdate);
@@ -269,32 +265,46 @@ class VTree {
   createLinks(src, links) {
     var diagonal = this.d3.diagonal;
 
-    var link = this.d3.g.selectAll("path.vtree-link")
+    var link = this.d3.g.selectAll('path.vtree-link')
       .data(links, function (d) { return d.target.id; });
 
-    link.enter().insert("path", "g")
-      .attr("class", "vtree-link")
-      .attr("d", function () {
+    link.enter().insert('path', 'g')
+      .attr('class', 'vtree-link')
+      .attr('d', function () {
         var o = { x: src.x0, y: src.y0 };
 
         return diagonal({ source: o, target: o });
       })
-    .style("opacity", 0);
+    .style('opacity', 0);
 
     link.transition()
       .duration(this._conf.duration)
-      .attr("d", diagonal)
-      .style("opacity", 1);
+      .attr('d', diagonal)
+      .style('opacity', 1);
 
     link.exit().transition()
       .duration(this._conf.duration)
-      .attr("d", function () {
+      .attr('d', function () {
         var o = { x: src.x, y: src.y };
 
         return diagonal({ source: o, target: o });
       })
-    .style("opacity", 0)
+    .style('opacity', 0)
       .remove();
+  }
+
+  saveSvg(filename='tree.svg') {
+    try {
+      new Blob();
+    } catch (e) {
+      alert('blob not supported');
+      return;
+    }
+
+    const html = getSvgHtml(this.d3.svg.node());
+
+    const blob = new Blob([html], {type: 'image/svg+xml'});
+    downloadSvg(blob, filename);
   }
 
   size(width, height) {
@@ -309,8 +319,8 @@ class VTree {
     this.height = height;
 
     this.d3.svg
-      .attr("width", width)
-      .attr("height", height);
+      .attr('width', width)
+      .attr('height', height);
 
     return this;
   }
@@ -319,11 +329,11 @@ class VTree {
     var cf = this._conf;
 
     switch (name) {
-      case "showLinkName":
+      case 'showLinkName':
         cf.showLinkName = !!val;
         break;
 
-      case "showColumn0":
+      case 'showColumn0':
         cf.showColumn[0] = !!val;
 
         if (cf.showColumn[0] === false) {
@@ -331,7 +341,7 @@ class VTree {
         }
         break;
 
-      case "showColumn1":
+      case 'showColumn1':
         cf.showColumn[1] = !!val;
 
         if (cf.showColumn[1] === false) {
@@ -339,30 +349,30 @@ class VTree {
         }
         break;
 
-      case "fontSize":
+      case 'fontSize':
         setNumberConf(cf, name, val, 9, 32);
 
-        this.d3.ruler.style("font-size", cf.fontSize + "px");
+        this.d3.ruler.style('font-size', cf.fontSize + 'px');
 
         break;
 
-      case "heightFactor":
+      case 'heightFactor':
         setNumberConf(cf, name, val, 1, 10);
         break;
 
-      case "nodeMargin":
+      case 'nodeMargin':
         setNumberConf(cf, name, val, 1, 100);
         break;
 
-      case "animeDuration":
-        setNumberConf(cf, "duration", val, 10, 10000);
+      case 'animeDuration':
+        setNumberConf(cf, 'duration', val, 10, 10000);
         break;
 
-      case "maxNameLen":
+      case 'maxNameLen':
         setNumberConf(cf, name, val, 1, 1024);
         break;
 
-      case "maxValueLen":
+      case 'maxValueLen':
         setNumberConf(cf, name, val, 1, 1024);
         break;
 
@@ -376,22 +386,22 @@ class VTree {
 
 
 function setTreeNodeClass(d) {
-  var a = ["vtree-node"];
+  var a = ['vtree-node'];
 
   if (d._vtClassName) {
     a.push(d._vtClassName);
   }
 
   if (d._vtHiddenChildren) {
-    a.push("collapsed");
+    a.push('collapsed');
   }
 
-  return a.join(" ");
+  return a.join(' ');
 }
 
 
 function getNumberConf (val, start, end) {
-  if (typeof val !== "number") {
+  if (typeof val !== 'number') {
     return null;
   }
 
@@ -420,7 +430,7 @@ function setNumberConf(conf, name, val, start, end) {
 
 
 function isArray(obj) {
-  if (Object.prototype.toString.call(obj) === "[object Array]") {
+  if (Object.prototype.toString.call(obj) === '[object Array]') {
     return true;
   }
 
@@ -448,7 +458,7 @@ function addNames(d, tbl) {
 
 function setLinkName(d, name, index) {
   if (index || index === 0) {
-    name = ["[", index, "]"].join("");
+    name = ['[', index, ']'].join('');
   }
 
   d._vtLinkName = name;
@@ -519,7 +529,7 @@ function setVtreeInfoJSON(d) {
       continue;
     }
 
-    if (startsWith(name, "_vt")) {
+    if (startsWith(name, '_vt')) {
       continue;
     }
 
@@ -533,7 +543,7 @@ function setVtreeInfoJSON(d) {
           var item = data[i];
           var type = typeof item;
 
-          if (item === null || type === "string" || type === "number" || type === "boolean") {
+          if (item === null || type === 'string' || type === 'number' || type === 'boolean') {
             item = { name: item };
           }
 
@@ -549,10 +559,10 @@ function setVtreeInfoJSON(d) {
         dummy._vtIsDummy = true;
         dummy[name] = data;
 
-        addChildNode(d, [name, "[", data.length, "]"].join(""), dummy, null);
+        addChildNode(d, [name, '[', data.length, ']'].join(''), dummy, null);
         setVtreeInfo(dummy);
       }
-    } else if (data !== null && typeof data === "object") {
+    } else if (data !== null && typeof data === 'object') {
       addChildNode(d, name, data, null);
       setVtreeInfo(data);
     } else {
@@ -567,16 +577,16 @@ function str2json(text) {
     var data = JSON.parse(text);
   } catch (e) {
     text = text.replace(
-        /([{,])\s*([^":\[\]{},\s]+)\s*:/g,
+        /([{,])\s*([^':\[\]{},\s]+)\s*:/g,
           function ( match, sep, s ) {
-            return [sep, " \"", s, "\":"].join("");
+            return [sep, ' \'', s, '\':'].join('');
           }
           );
 
     text = text.replace(
-        /:\s*([^",\[\]{}\s]+)\s*([,}])/g,
+        /:\s*([^',\[\]{}\s]+)\s*([,}])/g,
         function (match, s, sep) {
-          return [": \"", s, "\"", sep].join("");
+          return [': \'', s, '\'', sep].join('');
         }
         );
 
@@ -593,9 +603,9 @@ function str2json(text) {
 
 function createZoomFunc(vt) {
   return function () {
-    var transform = ["translate(", d3.event.translate, ")scale(", d3.event.scale, ")"].join("");
+    var transform = ['translate(', d3.event.translate, ')scale(', d3.event.scale, ')'].join('');
 
-    vt.d3.g.attr("transform", transform);
+    vt.d3.g.attr('transform', transform);
   };
 }
 
@@ -651,13 +661,13 @@ function createHSeparationFunc(vt) {
 
 function createLinkNameStr(vt, d) {
   if (d._vtIsArrayItem) {
-    var s = [d._vtArrayName, "[", d._vtArrayIndex, "]"].join("");
+    var s = [d._vtArrayName, '[', d._vtArrayIndex, ']'].join('');
   } else {
-    s = d._vtLinkName || "";
+    s = d._vtLinkName || '';
   }
 
   if (s.length > vt._conf.maxNameLen) {
-    s = s.substring(0, vt._conf.maxNameLen) + "...";
+    s = s.substring(0, vt._conf.maxNameLen) + '...';
   }
 
   return s;
@@ -665,10 +675,10 @@ function createLinkNameStr(vt, d) {
 
 
 function createTableStr(s, maxLen) {
-  s = s || "";
+  s = s || '';
 
   if (s.length > maxLen) {
-    s = s.substring(0, maxLen) + "...";
+    s = s.substring(0, maxLen) + '...';
   }
 
   return s;
@@ -680,7 +690,7 @@ function calcLinkNameWidth(vt, d) {
 
   vt.d3.ruler.text(s);
   var w = vt.d3.ruler[0][0].offsetWidth;
-  vt.d3.ruler.text("");
+  vt.d3.ruler.text('');
 
   return w;
 }
@@ -711,7 +721,7 @@ function calcMaxColumnWidth(vt, tbl, col) {
     }
   }
 
-  vt.d3.ruler.text("");
+  vt.d3.ruler.text('');
 
   return maxW + (vt._conf.tdPadding * 2);
 }
@@ -763,11 +773,11 @@ function createTooltipOnMouseOverFunc(vt) {
   return function (d) {
     vt.d3.tooltip.transition()
       .duration(200)
-      .style("opacity", 0.9);
+      .style('opacity', 0.9);
 
     vt.d3.tooltip.text(d._vtOriginal)
-      .style("left", (d3.event.pageX - vt.containerLeft) + "px")
-      .style("top",  (d3.event.pageY - vt.containerTop - vt._conf.fontSize) + "px");
+      .style('left', (d3.event.pageX - vt.containerLeft) + 'px')
+      .style('top',  (d3.event.pageY - vt.containerTop - vt._conf.fontSize) + 'px');
   };
 }
 
@@ -776,9 +786,9 @@ function createTooltipOnMouseOutFunc(vt) {
   return function onMouseOut() {
     vt.d3.tooltip.transition()
       .duration(500)
-      .style("opacity", 0);
+      .style('opacity', 0);
 
-    vt.d3.tooltip.text("");
+    vt.d3.tooltip.text('');
   };
 }
 
@@ -839,7 +849,7 @@ function createTableBorderPathFunc(vt) {
     var tbl = d._vtNameTbl;
 
     if (!tbl || tbl.length === 0) {
-      return "";
+      return '';
     }
 
     var w2 = d._vtWidth / 2;
@@ -847,19 +857,19 @@ function createTableBorderPathFunc(vt) {
     // an outline border
     // an origin point is (center, top)
     var a = [];
-    a.push(["M", -w2, 0].join(" "));
-    a.push(["L", w2, 0].join(" "));
-    a.push(["L", w2, d.h].join(" "));
-    a.push(["L", -w2, d.h].join(" "));
-    a.push("Z");
+    a.push(['M', -w2, 0].join(' '));
+    a.push(['L', w2, 0].join(' '));
+    a.push(['L', w2, d.h].join(' '));
+    a.push(['L', -w2, d.h].join(' '));
+    a.push('Z');
 
     // a vertical separator
     var nameW = calcMaxColumnWidth(vt, tbl, 0);  // the max of the names
     var sepX = -w2 + nameW;  // x of the vertical separator
 
     if (vt._conf.showColumn[0] && vt._conf.showColumn[1]) {
-      a.push(["M", sepX, 0].join(" "));
-      a.push(["L", sepX, d.h].join(" "));
+      a.push(['M', sepX, 0].join(' '));
+      a.push(['L', sepX, d.h].join(' '));
     }
 
     // horizontal borders
@@ -867,13 +877,13 @@ function createTableBorderPathFunc(vt) {
     var stepH = d.h / tbl.length;
 
     for (var i = 0; i < tbl.length; i++) {
-      a.push(["M", -w2, y].join(" "));
-      a.push(["L", w2, y].join(" "));
+      a.push(['M', -w2, y].join(' '));
+      a.push(['L', w2, y].join(' '));
 
       y += stepH;
     }
 
-    return a.join("");
+    return a.join('');
   };
 }
 
@@ -898,11 +908,11 @@ function createTableTexts(vt, nodes) {
 
     var stepH = d.h / tbl.length;
 
-    d3.select(this).selectAll("g")
+    d3.select(this).selectAll('g')
       .data(tbl)
       .enter()
-      .append("g")
-      .attr("class", "vtree-row")
+      .append('g')
+      .attr('class', 'vtree-row')
       .each(function (row, rowNo) {
         var d3row = d3.select(this);
 
@@ -910,12 +920,12 @@ function createTableTexts(vt, nodes) {
 
         // name columns
         if (vt._conf.showColumn[0]) {
-          createTableText(vt, d3row, row[0],  -w2 + pad, h, "vtree-name-col", vt._conf.maxNameLen);
+          createTableText(vt, d3row, row[0],  -w2 + pad, h, 'vtree-name-col', vt._conf.maxNameLen);
         }
 
         // value columns
         if (vt._conf.showColumn[1]) {
-          createTableText(vt, d3row, row[1],  sepX + pad, h, "vtree-val-col", vt._conf.maxValueLen);
+          createTableText(vt, d3row, row[1],  sepX + pad, h, 'vtree-val-col', vt._conf.maxValueLen);
         }
       });
   });
@@ -923,28 +933,28 @@ function createTableTexts(vt, nodes) {
 
 
 function createTableText(vt, d3row, d, x, y, clsName, maxLen) {
-  d._vtOriginal = d.val || "";
+  d._vtOriginal = d.val || '';
 
   var val = createTableStr(d.val, maxLen);
 
-  var d3text = d3row.selectAll("text." + clsName)
+  var d3text = d3row.selectAll('text.' + clsName)
     .data([d])
     .enter()
-    .append("text")
-    .attr("class", clsName)
+    .append('text')
+    .attr('class', clsName)
     .text(val)
-    .attr("x", x)
-    .attr("y", y)
-    .style("font-size", vt._conf.fontSize);
+    .attr('x', x)
+    .attr('y', y)
+    .style('font-size', vt._conf.fontSize);
 
   d3text.filter(function (d) { return d._vtOriginal.length > maxLen; })
-    .on("mouseover", vt.d3.onMouseOver)
-    .on("mouseout", vt.d3.onMouseOut);
+    .on('mouseover', vt.d3.onMouseOver)
+    .on('mouseout', vt.d3.onMouseOut);
 }
 
 
 function tranStr(x, y) {
-  return ["translate(", x, ",", y, ")"].join("");
+  return ['translate(', x, ',', y, ')'].join('');
 }
 
 
@@ -954,4 +964,31 @@ function startsWith(str, pattern) {
   }
 
   return str.indexOf(pattern) === 0;
+}
+
+
+function getSvgHtml(svg) {
+  const node = svg.cloneNode(true);
+
+  const tmp = document.createElement('div');
+  tmp.appendChild(node);
+
+  return tmp.innerHTML;
+}
+
+
+function downloadSvg(blob, filename) {
+  const a = document.createElement('a');
+  document.body.appendChild(a);
+  a.style = 'display: none';
+
+  const url = URL.createObjectURL(blob);
+
+  a.href = url;
+  a.download = filename;
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  document.body.removeChild(a);
 }

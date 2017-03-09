@@ -56,6 +56,10 @@ window.onload = function () {
         vt.data(document.getElementById("from-text").value);
         vt.update();
     };
+
+    document.getElementById("save-button").onclick = function () {
+        vt.saveSvg();
+    };
 };
 
 </script>
@@ -67,7 +71,7 @@ window.onload = function () {
 
     <h1>JSON Tree Visualizer</h1>
 
-    <p style="text-align: right;">Ver 0.1.9.1.9.55 <a href="https://github.com/ivan111/vtree">github</a></p>
+    <p style="text-align: right;">Ver 0.2.0 <a href="https://github.com/ivan111/vtree">github</a></p>
 
     <p>You can convert JSON strings into tree diagrams. For example, it is used to show AST(Abstract Syntax Tree) as tree diagrams for debugging. In that case, offcourse, you need to translate AST into JSON.</p>
 
@@ -77,18 +81,19 @@ window.onload = function () {
 
     <div class="row">
 
-      <div class="col-xs-2">
+      <div class="col-xs-4">
         <input id="go-button" class="btn btn-primary" type="button" value="Visualize">
+        <input id="save-button" class="btn btn-info" type="button" value="save svg">
       </div>
 
-      <div class="col-xs-5">
+      <div class="col-xs-4">
         <label>Show</label>
         <input id="showLinkName" type="checkbox" value="showLinkName" checked>Link Name&nbsp;&nbsp;
         <input id="showColumn0" type="checkbox" value="showColumn0" checked>Column 1&nbsp;&nbsp;
         <input id="showColumn1" type="checkbox" value="showColumn1" checked>Column 2&nbsp;&nbsp;
       </div>
 
-      <div class="col-xs-5">
+      <div class="col-xs-4">
         <label>Max Column 1 Len: 
           <input id="maxNameLen" type="number" min="1" max="256" step="10" size="3" value="32">
         </label>
