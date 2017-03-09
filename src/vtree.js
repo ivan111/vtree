@@ -8,7 +8,6 @@
  *
  * - _vtNameTbl : array. each item is [{ val: name }, { val: val }]
  * - _vtLinkName : link name displayed above the node table.
- * - _vtIsDummy :
  * - _vtOriginalVal : this keeps the original field value even if the displayed value is ellipted.
  *
  * - _vtMaxNameW : max name fields widths
@@ -17,7 +16,7 @@
  *
  * - _vtIsArrayItem :
  * - _vtArrayIndex :
- * - _vtArrayName :
+ * - _vtArrayName : for setting link names of arrays
  */
 
 import vtreeLayout from './layout.vtree.js';
@@ -321,7 +320,7 @@ function isArray(obj) {
 }
 
 
-function addName(d, name, val) {
+function addField(d, name, val) {
   if (!d._vtNameTbl) {
     d._vtNameTbl = [];
   }
@@ -364,38 +363,58 @@ function setVtreeInfo(d) {
     delete d[name];
 
     if (isArray(data)) {
-      if (d._vtIsDummy) {
-
-        for (var i = 0; i < data.length; i++) {
-          var item = data[i];
-          var type = typeof item;
-
-          if (item === null || type === 'string' || type === 'number' || type === 'boolean') {
-            item = { name: item };
-          }
-
-          item._vtIsArrayItem = true;
-          item._vtArrayName = name;
-          item._vtArrayIndex = i;
-
-          addChildNode(d, name, item, i);
-          setVtreeInfo(item);
-        }
+      if (data.length === 0 || data.every(isPrimitive)) {
+        addField(d, name, arr2str(data));
       } else {
-        var dummy = {};
-        dummy._vtIsDummy = true;
-        dummy[name] = data;
+        for (var i = 0; i < data.length; i++) {
+          const item = data[i];
 
-        addChildNode(d, [name, '[', data.length, ']'].join(''), dummy, null);
-        setVtreeInfo(dummy);
+          setVtreeInfoForArrayItem(d, name, item, i);
+        }
       }
     } else if (data !== null && typeof data === 'object') {
       addChildNode(d, name, data, null);
       setVtreeInfo(data);
     } else {
-      addName(d, name, data);
+      addField(d, name, data);
     }
   }
+}
+
+
+function arr2str(arr) {
+  const tmp = [];
+
+  arr.forEach(function (d) {
+    tmp.push('' + d);
+  });
+
+  return '[' + tmp.join(', ') + ']';
+}
+
+
+function setVtreeInfoForArrayItem(d, name, item, i) {
+  if (isPrimitive(item)) {
+    item = { name: item };
+  }
+
+  item._vtIsArrayItem = true;
+  item._vtArrayName = name;
+  item._vtArrayIndex = i;
+
+  addChildNode(d, name, item, i);
+  setVtreeInfo(item);
+}
+
+
+function isPrimitive(d) {
+  const type = typeof d;
+
+  if (d === null || type === 'string' || type === 'number' || type === 'boolean') {
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -443,20 +462,6 @@ function createChildrenFunc() {
 
     if (d._vtChildren && d._vtChildren.len !== 0) {
       children = d._vtChildren.slice(0);  // copy
-
-      for (var i = children.length - 1; i >= 0; i--) {
-        if (children[i]._vtIsDummy) {
-          var args = [i, 1];
-
-          if (children[i]._vtChildren) {
-            args = args.concat(children[i]._vtChildren);
-          } else if (children[i]._vtHiddenChildren) {
-            args = args.concat(children[i]._vtHiddenChildren);
-          }
-
-          children.splice.apply(children, args);
-        }
-      }
 
       if (children.length === 0) {
         children = null;

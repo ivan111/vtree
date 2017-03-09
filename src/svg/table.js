@@ -2,8 +2,7 @@
 
 
 export function updateTables(node, nodeEnter, nodeUpdate, conf) {
-  nodeEnter.filter(function (d) { return !d._vtIsDummy; })
-    .append('path')
+  nodeEnter.append('path')
     .attr('class', 'vtree-table')
     .style('fill', 'white');
 
@@ -13,8 +12,6 @@ export function updateTables(node, nodeEnter, nodeUpdate, conf) {
   node.selectAll('g.vtree-row').remove();
 
   updateTableTexts(nodeUpdate, conf);
-
-  updateDummyArray(nodeEnter, conf);
 }
 
 
@@ -138,17 +135,6 @@ function createTableStr(s, maxLen) {
   }
 
   return s;
-}
-
-
-function updateDummyArray(nodeEnter, conf) {
-  const r = conf.fontSize * 2 / 3;
-
-  nodeEnter.filter(function (d) { return d._vtIsDummy; })
-    .append('circle')
-    .attr('class', 'vtree-dummy')
-    .attr('cy', r )
-    .attr('r', r );
 }
 
 
