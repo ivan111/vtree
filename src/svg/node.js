@@ -18,7 +18,7 @@ export function updateNodes(g, nodes, src, onClick, conf) {
 
   // create nodes
   const nodeEnter = node.enter().append('g')
-    .attr('class', setTreeNodeClass)
+    .attr('class', 'vtree-node')
     .attr('transform', function () { return tranStr(src.x0, src.y0); })
     .style('opacity', 0)
     .on('click', onClick);
@@ -26,7 +26,7 @@ export function updateNodes(g, nodes, src, onClick, conf) {
   // animation
   const nodeUpdate = node.transition()
     .duration(conf.duration)
-    .attr('class', setTreeNodeClass)
+    .attr('class', 'vtree-node')
     .attr('transform', function (d) { return tranStr(d.x, d.y); })
     .style('opacity', 1);
 
@@ -39,17 +39,6 @@ export function updateNodes(g, nodes, src, onClick, conf) {
 
   updateLinkNames(nodeEnter, nodeUpdate, conf);
   updateTables(node, nodeEnter, nodeUpdate, conf);
-}
-
-
-function setTreeNodeClass(d) {
-  var a = ['vtree-node'];
-
-  if (d._vtHiddenChildren) {
-    a.push('collapsed');
-  }
-
-  return a.join(' ');
 }
 
 
