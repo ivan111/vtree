@@ -1,6 +1,6 @@
 /* global d3 */
 
-module.exports = function () {
+export default function () {
   var hierarchy = d3.layout.hierarchy().sort(null).value(null);
   var separation = d3_layout_vtreeSeparation;
   var hSep = d3_layout_vtreeHSeparation;
