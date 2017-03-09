@@ -215,7 +215,8 @@ class VTree {
   createTables(node, nodeEnter, nodeUpdate) {
     nodeEnter.filter(function (d) { return !d._vtIsDummy; })
       .append('path')
-      .attr('class', 'vtree-table');
+      .attr('class', 'vtree-table')
+      .style('fill', 'white');
 
     nodeUpdate.selectAll('.vtree-table')
       .attr('d', createTableBorderPathFunc(this));
@@ -275,7 +276,10 @@ class VTree {
 
         return diagonal({ source: o, target: o });
       })
-    .style('opacity', 0);
+      .style('fill', 'none')
+      .style('stroke', '#888')
+      .style('stroke-width', '2px')
+      .style('opacity', 0);
 
     link.transition()
       .duration(this._conf.duration)
@@ -289,7 +293,7 @@ class VTree {
 
         return diagonal({ source: o, target: o });
       })
-    .style('opacity', 0)
+      .style('opacity', 0)
       .remove();
   }
 
