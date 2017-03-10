@@ -30,8 +30,6 @@ const WIDTH = 960;
 const HEIGHT = 800;
 const MARGIN = 20;
 
-const RE_NULL = /^\s*null\s*$/;
-
 
 module.exports = function (container, config = {}) {
   return new VTree(container, config);
@@ -131,7 +129,7 @@ class VTree {
       json = data;
     }
 
-    if ((json === null && RE_NULL.test(data)) || type === 'string' || type === 'number' || type === 'boolean') {
+    if (isPrimitive(json)) {
       json = { name: json };
     } else if (Array.isArray(json)) {
       json = { name: '/', children: json };
@@ -168,7 +166,7 @@ class VTree {
     var nodes = this.d3.tree(this.root, undefined, treeSize);
     var links = this.d3.tree.links(nodes);
 
-    updateNodes(this.d3.g, nodes, src, createCollapseFunc(this), this._conf);
+    updateNodes(this.d3.g, nodes, src, (d) => this.onCollapsed(d), this._conf);
     updateLinks(this.d3.g, links, src, this._conf);
 
     var containerSize = { width: this.width, height: this.height };
@@ -203,6 +201,24 @@ class VTree {
     const blob = new Blob([html], {type: 'image/svg+xml'});
     downloadSvg(blob, filename);
   }
+
+
+  onCollapsed(d) {
+    if (!d._vtChildren && !d._vtHiddenChildren) {
+      return;
+    }
+
+    if (d._vtChildren) {
+      d._vtHiddenChildren = d._vtChildren;
+      d._vtChildren = null;
+    } else {
+      d._vtChildren = d._vtHiddenChildren;
+      d._vtHiddenChildren = null;
+    }
+
+    this.update(d);
+  }
+
 
   size(width, height) {
     var w = getNumberConf(width, 32, 8096);
@@ -467,7 +483,7 @@ function createChildrenFunc() {
 function createSeparationFunc(vt) {
   return function (a, b) {
     if (a.parent !== b.parent) {
-      return vt._conf.nodeMargin << 2;
+      return vt._conf.nodeMargin * 2;
     }
 
     return vt._conf.nodeMargin;
@@ -546,25 +562,6 @@ function createTooltipOnMouseOutFunc(vt) {
       .style('opacity', 0);
 
     vt.d3.tooltip.text('');
-  };
-}
-
-
-function createCollapseFunc(vt) {
-  return function (d) {
-    if (!d._vtChildren && !d._vtHiddenChildren) {
-      return;
-    }
-
-    if (d._vtChildren) {
-      d._vtHiddenChildren = d._vtChildren;
-      d._vtChildren = null;
-    } else {
-      d._vtChildren = d._vtHiddenChildren;
-      d._vtHiddenChildren = null;
-    }
-
-    vt.update(d);
   };
 }
 
