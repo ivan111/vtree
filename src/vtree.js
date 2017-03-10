@@ -4,18 +4,18 @@
  * hidden node variables prefix '_vt'.
  *
  * - _vtChildren : node's children
- * - _vtHiddenChildren : when collapsed, this has collapsed children.
  *
  * - _vtNameTbl : array. each item is [{ val: name }, { val: val }]
  * - _vtLinkName : link name displayed above the node table.
  * - _vtOriginalVal : this keeps the original field value even if the displayed value is ellipted.
+ * - _vtIsDummyRoot : true if the original root is array.
  *
  * - _vtMaxNameW : max name fields widths
  * - _vtMaxValW : max value fields widths
  * - _vtWidth : _vtMaxNameW + _vtMaxValW
  *
- * - _vtIsArrayItem :
- * - _vtArrayIndex :
+ * - _vtIsArrayItem : true if the node is an array item
+ * - _vtArrayIndex : an array index
  * - _vtArrayName : for setting link names of arrays
  */
 
@@ -132,7 +132,7 @@ class VTree {
     if (isPrimitive(json)) {
       json = { name: json };
     } else if (Array.isArray(json)) {
-      json = { name: '/', children: json };
+      json = { children: json, _vtIsDummyRoot: true };
     }
 
     this.root = json;
@@ -166,14 +166,19 @@ class VTree {
     var nodes = this.d3.tree(this.root, undefined, treeSize);
     var links = this.d3.tree.links(nodes);
 
-    updateNodes(this.d3.g, nodes, src, (d) => this.onCollapsed(d), this._conf);
+    updateNodes(this.d3.g, nodes, src, this.onClickNode, this._conf);
     updateLinks(this.d3.g, links, src, this._conf);
 
-    var containerSize = { width: this.width, height: this.height };
-    var treePos = getTreePos(this.root, src, containerSize, treeSize);
+    var y = 0;
+    var w = treeSize.width + MARGIN * 2;
+    var h = treeSize.height + MARGIN * 2;
 
-    this.d3.zoomListener.translate(treePos);
-    this.d3.zoomListener.event(this.d3.g.transition().duration(this._conf.duration));
+    if (this.root._vtIsDummyRoot) {
+      y = 50;  // TODO: should be literal. see function d3_layout_vtreeHSeparation in layout.vtree.js
+    }
+
+    this.d3.svg
+      .attr('viewBox', `0 ${y} ${w} ${h}`);
 
     // store an old position for transition
     nodes.forEach(function (d) {
@@ -203,20 +208,8 @@ class VTree {
   }
 
 
-  onCollapsed(d) {
-    if (!d._vtChildren && !d._vtHiddenChildren) {
-      return;
-    }
-
-    if (d._vtChildren) {
-      d._vtHiddenChildren = d._vtChildren;
-      d._vtChildren = null;
-    } else {
-      d._vtChildren = d._vtHiddenChildren;
-      d._vtHiddenChildren = null;
-    }
-
-    this.update(d);
+  onClickNode() {
+    // TODO: create event listner mechanism
   }
 
 
@@ -362,7 +355,7 @@ function setVtreeInfo(d) {
       continue;
     }
 
-    if (startsWith(name, '_vt')) {
+    if (name.startsWith('_vt')) {
       continue;
     }
 
@@ -566,47 +559,6 @@ function createTooltipOnMouseOutFunc(vt) {
 }
 
 
-// get the top-left position of the tree which displayed at center of the container
-function getTreePos(root, src, containerSize, treeSize) {
-  var cW = containerSize.width;
-  var cH = containerSize.height;
-  var tW = treeSize.width;
-  var tH = treeSize.height;
-
-  if (tW < cW && tH < cH) {
-    var x = cW / 2 - root.x;
-    var y = (cH - tH) / 2;
-  } else if (src === root) {
-    x = cW / 2 - root.x;
-
-    if (tH < cH) {
-      y = (cH - tH) / 2;
-    } else {  // the tree beyond the container
-      y = MARGIN;
-    }
-  } else {
-    x = cW / 2 - src.x;
-
-    if (tH < cH) {
-      y = (cH - tH) / 2;
-    } else {
-      y = cH / 2 - src.y;
-    }
-  }
-
-  return [x, y];
-}
-
-
 function tranStr(x, y) {
-  return ['translate(', x, ',', y, ')'].join('');
-}
-
-
-function startsWith(str, pattern) {
-  if (!str) {
-    return false;
-  }
-
-  return str.indexOf(pattern) === 0;
+  return `translate(${x},${y})`;
 }

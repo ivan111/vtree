@@ -43,5 +43,5 @@ export function updateNodes(g, nodes, src, onClick, conf) {
 
 
 function tranStr(x, y) {
-  return ['translate(', x, ',', y, ')'].join('');
+  return `translate(${x},${y})`;
 }

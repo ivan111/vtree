@@ -385,7 +385,9 @@ function d3_layout_hierarchyLinks(nodes) {
 
       if (child._vtIsArrayItem) {
         if (child._vtArrayIndex === 0) {
-          result.push({ source: parent, target: child });
+          if (!parent._vtIsDummyRoot) {
+            result.push({ source: parent, target: child });
+          }
         } else {
           result.push({ source: children[i - 1], target: child });
         }

@@ -16,7 +16,7 @@
 
 <script type="text/javascript">
 window.onload = function () {
-    var i, vt, NUM_TEST = 12;
+    var i, vt, NUM_TEST = 11;
 
     for ( i = 0; i < NUM_TEST; i++ ) {
         var container = document.getElementById("div-test" + i);
@@ -119,73 +119,10 @@ window.onload = function () {
 
 
 
-
 <div>
-<code id="code-test5">{
-    name: "/",
-    contents: [
-        {
-            name: "Applications",
-            contents: [
-                { name: "Mail.app" },
-                { name: "iPhoto.app" },
-                { name: "Keynote.app" },
-                { name: "iTunes.app" },
-                { name: "XCode.app" },
-                { name: "Numbers.app" },
-                { name: "Pages.app" }
-            ]
-        },
-        {
-            name: "System",
-            contents: []
-        },
-        {
-            name: "Library",
-            contents: [
-                {
-                    name: "Application Support",
-                    contents: [
-                        { name: "Adobe" },
-                        { name: "Apple" },
-                        { name: "Google" },
-                        { name: "Microsoft" }
-                    ]
-                },
-                {
-                    name: "Languages",
-                    contents: [
-                        { name: "Ruby" },
-                        { name: "Python" },
-                        { name: "Javascript" },
-                        { name: "C#" }
-                    ]
-                },
-                {
-                    name: "Developer",
-                    contents: [
-                        { name: "4.2" },
-                        { name: "4.3" },
-                        { name: "5.0" },
-                        { name: "Documentation" }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "opt",
-            contents: []
-        },
-        {
-            name: "Users",
-            contents: [
-                { name: "pavanpodila" },
-                { name: "admin" },
-                { name: "test-user" }
-            ]
-        }
-    ]
-}</code>
+<code id="code-test5">
+["FunctionLiteral", {"name":""}, ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":1} ] ] ], ["IfStatement", ["CompareOperation", {"op":"GT"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":0} ] ], ["Block", ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"y"} ], ["BinaryOperation", {"op":"ADD"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":2} ] ] ] ], ["ExpressionStatement", ["Call", ["VariableProxy", {"name":"print"} ], ["VariableProxy", {"name":"y"} ] ] ] ], ["EmptyStatement"] ] ]
+</code>
 </div>
 
 <div id="div-test5"></div>
@@ -393,16 +330,6 @@ window.onload = function () {
 
 <div id="div-test10"></div>
 
-
-
-
-<div>
-<code id="code-test11">
-["FunctionLiteral", {"name":""}, ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":1} ] ] ], ["IfStatement", ["CompareOperation", {"op":"GT"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":0} ] ], ["Block", ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"y"} ], ["BinaryOperation", {"op":"ADD"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":2} ] ] ] ], ["ExpressionStatement", ["Call", ["VariableProxy", {"name":"print"} ], ["VariableProxy", {"name":"y"} ] ] ] ], ["EmptyStatement"] ] ]
-</code>
-</div>
-
-<div id="div-test11"></div>
 
 
 </body>
