@@ -72,7 +72,7 @@ class VTree {
       .style('position', 'relative');
 
     this.d3.zoomListener = d3.behavior.zoom()
-      .scaleExtent([1, 2])
+      .scaleExtent([1, 10])
       .on('zoom', createZoomFunc(this));
 
     this.d3.svg = this.d3.container.append('svg')
@@ -495,6 +495,7 @@ function createNodeSizeFunc(vt) {
   return function (d) {
     var fontSize = vt._conf.fontSize;
     var pad = vt._conf.tdPadding;
+    var linkNameW = 0;
 
     if (d._vtLinkName && vt._conf.showLinkName) {
       linkNameW = calcLinkNameWidth(d, vt.d3.ruler, vt._conf);
@@ -504,7 +505,6 @@ function createNodeSizeFunc(vt) {
 
     var maxNameW = 0;
     var maxValW = 0;
-    var linkNameW = 0;
 
     if (!tbl || tbl.length === 0) {
       var maxW = fontSize + pad * 2;
