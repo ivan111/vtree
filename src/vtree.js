@@ -12,7 +12,7 @@
  *
  * - _vtMaxNameW : max name fields widths
  * - _vtMaxValW : max value fields widths
- * - _vtWidth : _vtMaxNameW + _vtMaxValW
+ * - _vtTableWidth : _vtMaxNameW + _vtMaxValW
  *
  * - _vtIsArrayItem : true if the node is an array item
  * - _vtArrayIndex : an array index
@@ -503,7 +503,7 @@ function createNodeSizeFunc(vt) {
       sumH = (fontSize + pad * 2) * tbl.length;
     }
 
-    d._vtWidth = maxW;
+    d._vtTableWidth = maxW;
     d._vtMaxNameW = maxNameW;
     d._vtMaxValW = maxValW;
 

@@ -22,7 +22,7 @@ function createTableBorderPathFunc(conf) {
       return '';
     }
 
-    var w2 = d._vtWidth / 2;
+    var w2 = d._vtTableWidth / 2;
 
     // an outline border
     // an origin point is (center, top)
@@ -68,7 +68,7 @@ function updateTableTexts(nodes, conf) {
       return;
     }
 
-    var w2 = d._vtWidth / 2;
+    var w2 = d._vtTableWidth / 2;
     var nameW = d._vtMaxNameW;
     var sepX = -w2;
 
