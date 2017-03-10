@@ -7,13 +7,7 @@ svg.vtree {
 }
 
 
-svg.vtree .vtree-node text {
-    cursor: pointer;
-}
-
-
 svg.vtree circle.vtree-dummy {
-    cursor: pointer;
     stroke: steelblue;
     stroke-width: 2px;
     fill: white;
@@ -40,7 +34,6 @@ svg.vtree .vtree-table {
 
 svg.vtree path.vtree-table {
     fill: white;
-    cursor: pointer;
 }
 
 
