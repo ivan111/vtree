@@ -30,7 +30,19 @@ export function updateLinks(g, links, src, conf) {
   // animation
   link.transition()
     .duration(conf.duration)
-    .attr('d', diagonal)
+    .attr('d', function (d) {
+      if (d.target._vtArrayIndex) {
+        const srcX = d.source.x;
+        const srcY = d.source.y + d.source.h / 2;
+
+        const dstX = d.target.x;
+        const dstY = d.target.y + d.target.h / 2;
+
+        return `M${srcX},${srcY}L${dstX},${dstY}`;
+      }
+
+      return diagonal(d);
+    })
     .style('opacity', 1);
 
   // remove links
