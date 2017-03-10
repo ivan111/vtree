@@ -133,7 +133,7 @@ class VTree {
 
     if ((json === null && RE_NULL.test(data)) || type === 'string' || type === 'number' || type === 'boolean') {
       json = { name: json };
-    } else if (isArray(json)) {
+    } else if (Array.isArray(json)) {
       json = { name: '/', children: json };
     }
 
@@ -311,15 +311,6 @@ function setNumberConf(conf, name, val, start, end) {
 }
 
 
-function isArray(obj) {
-  if (Object.prototype.toString.call(obj) === '[object Array]') {
-    return true;
-  }
-
-  return false;
-}
-
-
 function addField(d, name, val) {
   if (!d._vtNameTbl) {
     d._vtNameTbl = [];
@@ -362,7 +353,7 @@ function setVtreeInfo(d) {
     var data = d[name];
     delete d[name];
 
-    if (isArray(data)) {
+    if (Array.isArray(data)) {
       if (data.length === 0 || data.every(isPrimitive)) {
         addField(d, name, arr2str(data));
       } else {
