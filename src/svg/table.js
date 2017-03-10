@@ -3,8 +3,7 @@
 
 export function updateTables(node, nodeEnter, nodeUpdate, conf) {
   nodeEnter.append('path')
-    .attr('class', 'vtree-table')
-    .style('fill', 'white');
+    .attr('class', 'vtree-table');
 
   nodeUpdate.selectAll('.vtree-table')
     .attr('d', createTableBorderPathFunc(conf));

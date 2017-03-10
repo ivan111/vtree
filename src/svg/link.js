@@ -22,9 +22,6 @@ export function updateLinks(g, links, src, conf) {
 
       return diagonal({ source: o, target: o });
     })
-    .style('fill', 'none')
-    .style('stroke', '#888')
-    .style('stroke-width', '2px')
     .style('opacity', 0);
 
   // animation

@@ -24,7 +24,6 @@ import { updateLinks } from './svg/link.js';
 import { updateNodes } from './svg/node.js';
 import { calcLinkNameWidth } from './svg/linkName.js';
 import { calcMaxColumnWidth } from './svg/table.js';
-import { getSvgHtml, downloadSvg } from './svg/save.js';
 
 const WIDTH = 960;
 const HEIGHT = 800;
@@ -187,24 +186,6 @@ class VTree {
     });
 
     return this;
-  }
-
-  getSvgHtml() {
-    return getSvgHtml(this.d3.svg.node());
-  }
-
-  saveSvg(filename='tree.svg') {
-    try {
-      new Blob();
-    } catch (e) {
-      alert('blob not supported');
-      return;
-    }
-
-    const html = this.getSvgHtml();
-
-    const blob = new Blob([html], {type: 'image/svg+xml'});
-    downloadSvg(blob, filename);
   }
 
 
