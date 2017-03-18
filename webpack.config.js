@@ -4,7 +4,7 @@ const config = {
   entry: './src/vtree.js',
 
   output: {
-    path: path.join(__dirname, 'build'),
+    path: path.join(__dirname, 'dist'),
     filename: 'vtree.js',
     library: 'vtree'
   },
