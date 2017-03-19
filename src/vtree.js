@@ -88,6 +88,8 @@ class VTree {
       children: [this.root]
     };
 
+    this.d3.svg.selectAll('*').remove();
+
     const g = this.d3.svg.selectAll('g.vtree-root')
       .data([root])
       .enter()
