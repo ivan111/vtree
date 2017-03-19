@@ -5,27 +5,27 @@
 
 <title>Tree Data Visualizer</title>
 
-<!-- stylesheets -->
 <link rel="stylesheet" href="css/vtree.css" type="text/css"/>
 
-<!-- third-party javascript -->
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
-<!-- our javascript -->
-<script src="build/vtree.js"></script>
+<script src="dist/vtree.js"></script>
 
 <script type="text/javascript">
 window.onload = function () {
-    var i, vt, NUM_TEST = 11;
+  var i, vt, NUM_TEST = 11;
+  var reader = new VTree.reader.Object();
 
-    for ( i = 0; i < NUM_TEST; i++ ) {
-        var container = document.getElementById("div-test" + i);
-        var data = document.getElementById("code-test" + i).innerHTML;
+  for (i = 0; i < NUM_TEST; i++) {
+    var container = document.getElementById("div-test" + i);
+    var s = document.getElementById("code-test" + i).innerHTML;
+    var jsonData = JSON.parse(s);
+    var data = reader.read(jsonData);
 
-        vtree(container)
-          .data(data)
-          .update();
-    }
+    new VTree(container)
+      .data(data)
+      .update();
+  }
 };
 
 </script>

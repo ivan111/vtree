@@ -1,6 +1,6 @@
 {
   "name": "vtree",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "display json data in a tree diagram.",
   "main": "build/vtree.js",
   "scripts": {
