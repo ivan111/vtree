@@ -6,7 +6,7 @@ const config = {
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'vtree.js',
-    library: 'vtree'
+    library: 'VTree'
   },
 
   module: {

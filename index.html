@@ -5,54 +5,29 @@
 
 <title>Online JSON to Tree Diagram Converter</title>
 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <link rel="stylesheet" href="css/vtree.css" type="text/css"/>
 
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-
 <script src="dist/vtree.js"></script>
 
 <script type="text/javascript">
 window.onload = function () {
-    var container = document.getElementById("container");
-    var data = document.getElementById("from-text").value;
+  var container = document.getElementById("container");
+  var vt = new VTree(container);
+  var reader = new VTree.reader.Object();
 
-    var vt = vtree(container)
-        .data(data)
-        .update();
+  function updateTree() {
+    var s = document.getElementById("from-text").value;
+    var jsonData = JSON.parse(s);
+    var data = reader.read(jsonData);
 
-    function showHandler () {
-        vt.conf(this.value, this.checked)
-            .update();
+    vt.data(data)
+      .update();
+  }
 
-        if (this.value === "showColumn0" && this.checked === false) {
-            document.getElementById("showColumn1").checked = true;
-        } else if (this.value === "showColumn1" && this.checked === false) {
-            document.getElementById("showColumn0").checked = true;
-        }
-    };
+  document.getElementById("go-button").onclick = updateTree;
 
-    document.getElementById("showLinkName").onclick = showHandler;
-    document.getElementById("showColumn0").onclick = showHandler;
-    document.getElementById("showColumn1").onclick = showHandler;
-
-
-    document.getElementById("go-button").onclick = function () {
-        try {
-            var v = parseInt(document.getElementById("maxNameLen").value);
-            vt.conf("maxNameLen", v);
-        } catch (err) {
-        }
-
-        try {
-            v = parseInt(document.getElementById("maxValueLen").value);
-            vt.conf("maxValueLen", v);
-        } catch (err) {
-        }
-
-        vt.data(document.getElementById("from-text").value);
-        vt.update();
-    };
+  updateTree();
 };
 
 </script>
@@ -64,59 +39,21 @@ window.onload = function () {
 
     <h1>Online JSON to Tree Diagram Converter</h1>
 
-    <p style="text-align: right;">Ver 0.2.0 <a href="https://github.com/ivan111/vtree">github</a></p>
+    <p style="text-align: right;"><a href="https://github.com/ivan111/vtree">github</a></p>
 
     <p>converts JSON strings into tree diagrams. For example, it is used to show AST(Abstract Syntax Tree) as tree diagrams for debugging. In such case, of course, you need to translate AST into JSON.</p>
 
-    <div class="row">
-      <textarea class="col-xs-12" id="from-text" rows="6">["FunctionLiteral", {"name":""}, ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":1} ] ] ], ["IfStatement", ["CompareOperation", {"op":"GT"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":0} ] ], ["Block", ["ExpressionStatement", ["Assignment", {"op":"ASSIGN"}, ["VariableProxy", {"name":"y"} ], ["BinaryOperation", {"op":"ADD"}, ["VariableProxy", {"name":"x"} ], ["Literal", {"handle":2} ] ] ] ], ["ExpressionStatement", ["Call", ["VariableProxy", {"name":"print"} ], ["VariableProxy", {"name":"y"} ] ] ] ], ["EmptyStatement"] ] ]</textarea>
+    <div style="margin-top: 1em;">
+      <textarea id="from-text" rows="6" cols="80">{ "array": [ 1, 2, 3 ], "boolean": true, "null": null, "number": 123, "object": { "a": "b", "c": "d", "e": "f" }, "string": "Hello World" }</textarea>
     </div>
 
-    <div class="row" style="margin-top: 1em;">
-      <input id="go-button" class="btn btn-primary" type="button" value="Visualize">
-    </div>
-
-    <div class="row" style="margin: 1em 0;">
-      <div class="col-xs-3">
-        <label>
-          <input id="showLinkName" type="checkbox" value="showLinkName" checked>Show Link Name&nbsp;&nbsp;
-        </label>
-      </div>
-
-      <div class="col-xs-3">
-        <label>
-          <input id="showColumn0" type="checkbox" value="showColumn0" checked>Show Column 1&nbsp;&nbsp;
-        </label>
-      </div>
-
-      <div class="col-xs-3">
-        <label>
-          <input id="showColumn1" type="checkbox" value="showColumn1" checked>Show Column 2&nbsp;&nbsp;
-        </label>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-xs-3">
-        <label>Max Column 1 Length: 
-          <input class="text-right" id="maxNameLen" type="number" min="1" max="256" step="10" size="3" value="32">
-        </label>
-      </div>
-
-      <div class="col-xs-3">
-        <label>Max Column 2 Length: 
-          <input class="text-right" id="maxValueLen" type="number" min="1" max="256" step="10" size="3" value="32">
-        </label>
-      </div>
-    </div>
-
-    <div class="row" style="clear: both;">
+    <div style="margin-top: 1em;">
+      <input id="go-button" type="button" value="Visualize">
     </div>
 
     <div id="container"></div>
 
-
-    <p style="text-align: right;">Created Date: 2014-07-27, Modified Date: 2017-03-10</p>
+    <p style="text-align: right;">Created Date: 2014-07-27, Modified Date: 2017-03-18</p>
 
   </div>
 </body>
