@@ -56,7 +56,6 @@ function renderLinks(node) {
     return;
   }
 
-  /*
   var minH = node.children[0].height;
 
   node.children.forEach((child) => {
@@ -64,7 +63,6 @@ function renderLinks(node) {
   });
 
   const h = Math.round(minH / 2);
-  */
 
   const orig = { x: 0, y: 0 };
 
@@ -80,12 +78,12 @@ function renderLinks(node) {
 
     src = {
       x: prev.x + prev.linkX,
-      y: prev.y + prev.linkY
+      y: prev.y + h
     };
 
     dst = {
       x: child.x + child.linkX,
-      y: child.y + child.linkY
+      y: child.y + h
     };
 
     const link = node.g.insert('path', ':first-child')
