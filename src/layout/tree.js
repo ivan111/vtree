@@ -67,9 +67,6 @@ function renderLinks(node) {
 
     const link = node.g.insert('path', ':first-child')
       .attr('class', 'vtree-link')
-      .attr('fill', 'none')
-      .attr('stroke', '#888')
-      .attr('stroke-width', 2)
       .attr('d', function () {
         return diagonal({ source: src, target: src });
       });
