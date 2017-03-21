@@ -112,7 +112,7 @@ class VTree {
       }
     });
 
-    const x = Math.round((WIDTH - this.root.width) / 2);
+    const x = Math.round((WIDTH - this.root.totalWidth) / 2);
     var y = Math.round((HEIGHT - this.root.totalHeight) / 2);
 
     if (y < MARGIN) {
