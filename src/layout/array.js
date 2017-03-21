@@ -35,11 +35,12 @@ function layout(node) {
     return;
   }
 
-  var x = -Math.floor(node.childrenWidth / 2) + Math.floor(node.width / 2);
+  var x = 0;
+  const y = 0;
 
   node.children.forEach((child) => {
-    child.x = x + Math.round((child.totalWidth - child.width) / 2);
-    child.y = 0;
+    child.x = x;
+    child.y = y;
 
     child.g
       .transition()
@@ -56,13 +57,11 @@ function renderLinks(node) {
     return;
   }
 
-  var minH = node.children[0].height;
+  var h = node.children[0].linkY;
 
   node.children.forEach((child) => {
-    minH = Math.min(minH, child.height);
+    h = Math.min(h, child.linkY);
   });
-
-  const h = Math.round(minH / 2);
 
   const orig = { x: 0, y: 0 };
 
@@ -131,11 +130,11 @@ function calcTotalSize(node) {
 
   node.totalWidth = Math.max(node.width, node.childrenWidth);
 
-  var h = 0;
+  var maxChildH = 0;
 
   node.children.forEach((child) => {
-    h = Math.max(h, child.totalHeight);
+    maxChildH = Math.max(maxChildH, child.totalHeight);
   });
 
-  node.totalHeight = h;
+  node.totalHeight = maxChildH;
 }

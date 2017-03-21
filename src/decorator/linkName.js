@@ -5,20 +5,34 @@ export default class LinkNameDecorator {
     this.linkName = linkName;
   }
 
-  render(g, oldG, width, height) {
+  render(g, oldG, width) {
     const t = g.append('text')
-      .attr('x', Math.round(width / 2))
-      .attr('y', -pad)
-      .attr('text-anchor', 'middle')
       .text(this.linkName);
 
     const b = t.node().getBBox();
-    const w = Math.ceil(b.width);
+    const textW = Math.ceil(b.width);
+    const textH = Math.ceil(b.height);
 
-    const ww = w + pad * 2;
+    const textTotalW = textW + pad * 2;
 
+    var newW = width;
 
+    if (textTotalW > width) {
+      newW = textTotalW;
+    }
 
-    return { width: Math.max(ww, width), height: height };
+    const textTotalH = textH + pad * 2;
+
+    const dw = newW - width;
+    const dh = textTotalH;
+    const dx = Math.round(dw / 2);
+    const dy = textTotalH;
+
+    t
+      .attr('x', Math.round(newW / 2))
+      .attr('y', pad + textH)
+      .attr('text-anchor', 'middle')
+
+    return { dx, dy, dw, dh };
   }
 }

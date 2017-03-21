@@ -29,11 +29,12 @@ function layout(node) {
     return;
   }
 
-  var x = -Math.floor(node.childrenWidth / 2) + Math.floor(node.width / 2);
+  var x = Math.round(node.width / 2) - Math.round(node.childrenWidth / 2);
+  const y = node.height + HEIGHT;
 
   node.children.forEach((child) => {
-    child.x = x + Math.round((child.totalWidth - child.width) / 2);
-    child.y = node.height + HEIGHT;
+    child.x = x;
+    child.y = y;
 
     child.g
       .transition()
@@ -110,11 +111,11 @@ function calcTotalSize(node) {
 
   node.totalWidth = Math.max(node.width, node.childrenWidth);
 
-  var h = 0;
+  var maxChildH = 0;
 
   node.children.forEach((child) => {
-    h = Math.max(h, child.totalHeight);
+    maxChildH = Math.max(maxChildH, child.totalHeight);
   });
 
-  node.totalHeight = node.height + HEIGHT + h;
+  node.totalHeight = node.height + HEIGHT + maxChildH;
 }

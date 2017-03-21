@@ -41,9 +41,19 @@ export default class Node {
     this.decorators.forEach((decorator) => {
       const newG = g.append('g');
 
-      const size = decorator.render(newG, prevG, this.width, this.height);
-      this.width = size.width;
-      this.height = size.height;
+      const dbbox = decorator.render(newG, prevG, this.width, this.height);
+
+      if (dbbox.dw || dbbox.dh) {
+        this.width += dbbox.dw;
+        this.height += dbbox.dh;
+      }
+
+      if (dbbox.dx || dbbox.dy) {
+        prevG.attr('transform', `translate(${dbbox.dx},${dbbox.dy})`);
+
+        this.linkX += dbbox.dx;
+        this.linkY += dbbox.dy;
+      }
 
       prevG = newG;
     });
