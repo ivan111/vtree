@@ -1,6 +1,8 @@
 // Karma configuration
 // Generated on Wed Mar 08 2017 06:54:09 GMT+0900 (JST)
 
+const webpackConfig = require('./webpack.config.js');
+
 module.exports = function(config) {
   config.set({
 
@@ -15,7 +17,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'test/*.spec.js'
+      'lib/d3.v3.js',
+      'src/**/test/*_test.js'
     ],
 
 
@@ -27,6 +30,8 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
+      'src/vtree.js': ['webpack'],
+      'src/**/test/*_test.js': ['webpack']
     },
 
 
@@ -64,6 +69,12 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity
+    concurrency: Infinity,
+
+    webpack: webpackConfig,
+
+    webpackMiddleware: {
+      noInfo: true
+    }
   })
 }
