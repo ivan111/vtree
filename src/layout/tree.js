@@ -8,14 +8,15 @@ const diagonal = d3.svg.diagonal();
 
 
 export default class TreeLayout {
-  constructor() {
+  constructor(options={}) {
+    this.height = options.height || HEIGHT;
   }
 
   layout(node) {
     calcChildrenWidth(node);
-    calcTotalSize(node);
+    calcTotalSize(node, this.height);
 
-    layout(node);
+    layout(node, this.height);
   }
 
   renderLinks(node) {
@@ -24,16 +25,16 @@ export default class TreeLayout {
 }
 
 
-function layout(node) {
+function layout(node, height) {
   if (node.children.length === 0) {
     return;
   }
 
   var x = Math.round(node.width / 2) - Math.round(node.childrenWidth / 2);
-  const y = node.height + HEIGHT;
+  const y = node.height + height;
 
   node.children.forEach((child) => {
-    child.x = x;
+    child.x = x + Math.round(child.totalWidth / 2) - Math.round(child.width / 2);
     child.y = y;
 
     child.g
@@ -101,7 +102,7 @@ function calcChildrenWidth(node) {
 }
 
 
-function calcTotalSize(node) {
+function calcTotalSize(node, height) {
   if (node.children.length === 0) {
     node.totalWidth = node.width;
     node.totalHeight = node.height;
@@ -117,5 +118,5 @@ function calcTotalSize(node) {
     maxChildH = Math.max(maxChildH, child.totalHeight);
   });
 
-  node.totalHeight = node.height + HEIGHT + maxChildH;
+  node.totalHeight = node.height + height + maxChildH;
 }

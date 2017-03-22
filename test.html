@@ -23,6 +23,7 @@ window.onload = function () {
     var data = reader.read(jsonData);
 
     new VTree(container)
+      .debug(true)
       .data(data)
       .update();
   }

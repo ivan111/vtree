@@ -3,8 +3,11 @@ import ArrayLayout from '../layout/array.js';
 
 const defaultLayout = new ArrayLayout();
 
+const MARGIN = 10;
+
+
 export default class ArrayNode extends Node {
-  constructor(nodes, layout) {
+  constructor(nodes, layout, options={}) {
     if (!layout) {
       layout = defaultLayout;
     }
@@ -16,6 +19,8 @@ export default class ArrayNode extends Node {
 
     this.linkX = 0;
     this.linkY = 0;
+
+    this.margin = options.margin || MARGIN;
   }
 
   _render() {

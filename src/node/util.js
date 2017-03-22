@@ -1,3 +1,5 @@
+const MAX_LEN = 32;
+
 export class BBox {
   constructor(x=0, y=0, width=0, height=0) {
     this.x = x;
@@ -9,6 +11,10 @@ export class BBox {
 
 
 export function appendRectText(g, x, y, text, pad) {
+  if (typeof text === 'string' && text.length > MAX_LEN) {
+    text = text.substr(0, MAX_LEN) + '...';
+  }
+
   const rect = g.append('rect')
     .attr('class', getClassName(text));
 

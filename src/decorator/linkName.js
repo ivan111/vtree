@@ -21,7 +21,7 @@ export default class LinkNameDecorator {
       newW = textTotalW;
     }
 
-    const textTotalH = textH + pad * 2;
+    const textTotalH = textH + pad;
 
     const dw = newW - width;
     const dh = textTotalH;
@@ -30,8 +30,8 @@ export default class LinkNameDecorator {
 
     t
       .attr('x', Math.round(newW / 2))
-      .attr('y', pad + textH)
-      .attr('text-anchor', 'middle')
+      .attr('y', textH)
+      .attr('text-anchor', 'middle');
 
     return { dx, dy, dw, dh };
   }

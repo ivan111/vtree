@@ -20,7 +20,7 @@ function obj2node(obj, linkName) {
   var node;
 
   if (isPrimitive(obj)) {
-    node = new StringNode(obj, []);
+    node = new StringNode(obj);
   } else if (Array.isArray(obj)) {
     const nodes = [];
 
