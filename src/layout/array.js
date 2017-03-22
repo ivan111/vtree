@@ -1,18 +1,13 @@
 /* global d3 */
 
-const MARGIN = 10;
 const DURATION = 1000;
 
 const diagonal = d3.svg.diagonal();
 
 
 export default class ArrayLayout {
-  constructor(options) {
-    if (options) {
-      if (options.hideLinks) {
-        this.hideLinks = true;
-      }
-    }
+  constructor(options={}) {
+    this.hideLinks = options.hideLinks;
   }
 
   layout(node) {
@@ -35,11 +30,11 @@ function layout(node) {
     return;
   }
 
-  var x = 0;
+  var x = -Math.round(node.childrenWidth / 2);
   const y = 0;
 
   node.children.forEach((child) => {
-    child.x = x;
+    child.x = x + Math.round(child.totalWidth / 2) - Math.round(child.width / 2);
     child.y = y;
 
     child.g
@@ -47,7 +42,7 @@ function layout(node) {
       .duration(DURATION)
       .attr('transform', `translate(${child.x},${child.y})`);
 
-    x += child.totalWidth + MARGIN;
+    x += child.totalWidth + node.margin;
   });
 }
 
@@ -114,7 +109,7 @@ function calcChildrenWidth(node) {
     w += child.totalWidth;
   });
 
-  w += (node.children.length - 1) * MARGIN;
+  w += (node.children.length - 1) * node.margin;
 
   node.childrenWidth = w;
 }

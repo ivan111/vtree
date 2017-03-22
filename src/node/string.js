@@ -3,8 +3,8 @@ import { appendRectText } from './util.js';
 
 
 export default class StringNode extends Node {
-  constructor(data, children) {
-    super(data, children);
+  constructor(data) {
+    super(data, []);
 
     this.textPad = 4;
   }
