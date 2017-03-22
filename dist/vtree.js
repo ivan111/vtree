@@ -130,9 +130,19 @@ var Node = function () {
       this.decorators.forEach(function (decorator) {
         var newG = g.append('g');
 
-        var size = decorator.render(newG, prevG, _this.width, _this.height);
-        _this.width = size.width;
-        _this.height = size.height;
+        var dbbox = decorator.render(newG, prevG, _this.width, _this.height);
+
+        if (dbbox.dw || dbbox.dh) {
+          _this.width += dbbox.dw;
+          _this.height += dbbox.dh;
+        }
+
+        if (dbbox.dx || dbbox.dy) {
+          prevG.attr('transform', 'translate(' + dbbox.dx + ',' + dbbox.dy + ')');
+
+          _this.linkX += dbbox.dx;
+          _this.linkY += dbbox.dy;
+        }
 
         prevG = newG;
       });
@@ -166,20 +176,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 /* global d3 */
 
-var MARGIN = 10;
 var DURATION = 1000;
 
 var diagonal = d3.svg.diagonal();
 
 var ArrayLayout = function () {
-  function ArrayLayout(options) {
+  function ArrayLayout() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
     _classCallCheck(this, ArrayLayout);
 
-    if (options) {
-      if (options.hideLinks) {
-        this.hideLinks = true;
-      }
-    }
+    this.hideLinks = options.hideLinks;
   }
 
   _createClass(ArrayLayout, [{
@@ -210,15 +217,16 @@ function _layout(node) {
     return;
   }
 
-  var x = -Math.floor(node.childrenWidth / 2) + Math.floor(node.width / 2);
+  var x = -Math.round(node.childrenWidth / 2);
+  var y = 0;
 
   node.children.forEach(function (child) {
-    child.x = x + Math.round((child.totalWidth - child.width) / 2);
-    child.y = 0;
+    child.x = x + Math.round(child.totalWidth / 2) - Math.round(child.width / 2);
+    child.y = y;
 
     child.g.transition().duration(DURATION).attr('transform', 'translate(' + child.x + ',' + child.y + ')');
 
-    x += child.totalWidth + MARGIN;
+    x += child.totalWidth + node.margin;
   });
 }
 
@@ -227,13 +235,11 @@ function _renderLinks(node) {
     return;
   }
 
-  /*
-  var minH = node.children[0].height;
-   node.children.forEach((child) => {
-    minH = Math.min(minH, child.height);
+  var h = node.children[0].linkY;
+
+  node.children.forEach(function (child) {
+    h = Math.min(h, child.linkY);
   });
-   const h = Math.round(minH / 2);
-  */
 
   var orig = { x: 0, y: 0 };
 
@@ -249,12 +255,12 @@ function _renderLinks(node) {
 
     src = {
       x: prev.x + prev.linkX,
-      y: prev.y + prev.linkY
+      y: prev.y + h
     };
 
     dst = {
       x: child.x + child.linkX,
-      y: child.y + child.linkY
+      y: child.y + h
     };
 
     var link = node.g.insert('path', ':first-child').attr('class', 'vtree-link').attr('d', function () {
@@ -280,7 +286,7 @@ function calcChildrenWidth(node) {
     w += child.totalWidth;
   });
 
-  w += (node.children.length - 1) * MARGIN;
+  w += (node.children.length - 1) * node.margin;
 
   node.childrenWidth = w;
 }
@@ -295,13 +301,13 @@ function calcTotalSize(node) {
 
   node.totalWidth = Math.max(node.width, node.childrenWidth);
 
-  var h = 0;
+  var maxChildH = 0;
 
   node.children.forEach(function (child) {
-    h = Math.max(h, child.totalHeight);
+    maxChildH = Math.max(maxChildH, child.totalHeight);
   });
 
-  node.totalHeight = h;
+  node.totalHeight = maxChildH;
 }
 
 /***/ }),
@@ -335,10 +341,14 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var defaultLayout = new _array2.default();
 
+var MARGIN = 10;
+
 var ArrayNode = function (_Node) {
   _inherits(ArrayNode, _Node);
 
   function ArrayNode(nodes, layout) {
+    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
     _classCallCheck(this, ArrayNode);
 
     if (!layout) {
@@ -352,6 +362,8 @@ var ArrayNode = function (_Node) {
 
     _this.linkX = 0;
     _this.linkY = 0;
+
+    _this.margin = options.margin || MARGIN;
     return _this;
   }
 
@@ -395,10 +407,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var StringNode = function (_Node) {
   _inherits(StringNode, _Node);
 
-  function StringNode(data, children) {
+  function StringNode(data) {
     _classCallCheck(this, StringNode);
 
-    var _this = _possibleConstructorReturn(this, (StringNode.__proto__ || Object.getPrototypeOf(StringNode)).call(this, data, children));
+    var _this = _possibleConstructorReturn(this, (StringNode.__proto__ || Object.getPrototypeOf(StringNode)).call(this, data, []));
 
     _this.textPad = 4;
     return _this;
@@ -585,6 +597,8 @@ exports.appendRectText = appendRectText;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var MAX_LEN = 32;
+
 var BBox = exports.BBox = function BBox() {
   var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
   var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
@@ -600,6 +614,10 @@ var BBox = exports.BBox = function BBox() {
 };
 
 function appendRectText(g, x, y, text, pad) {
+  if (typeof text === 'string' && text.length > MAX_LEN) {
+    text = text.substr(0, MAX_LEN) + '...';
+  }
+
   var rect = g.append('rect').attr('class', getClassName(text));
 
   var t = g.append('text').text(text);
@@ -661,16 +679,20 @@ var diagonal = d3.svg.diagonal();
 
 var TreeLayout = function () {
   function TreeLayout() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
     _classCallCheck(this, TreeLayout);
+
+    this.height = options.height || HEIGHT;
   }
 
   _createClass(TreeLayout, [{
     key: 'layout',
     value: function layout(node) {
       calcChildrenWidth(node);
-      calcTotalSize(node);
+      calcTotalSize(node, this.height);
 
-      _layout(node);
+      _layout(node, this.height);
     }
   }, {
     key: 'renderLinks',
@@ -685,16 +707,17 @@ var TreeLayout = function () {
 exports.default = TreeLayout;
 
 
-function _layout(node) {
+function _layout(node, height) {
   if (node.children.length === 0) {
     return;
   }
 
-  var x = -Math.floor(node.childrenWidth / 2) + Math.floor(node.width / 2);
+  var x = Math.round(node.width / 2) - Math.round(node.childrenWidth / 2);
+  var y = node.height + height;
 
   node.children.forEach(function (child) {
-    child.x = x + Math.round((child.totalWidth - child.width) / 2);
-    child.y = node.height + HEIGHT;
+    child.x = x + Math.round(child.totalWidth / 2) - Math.round(child.width / 2);
+    child.y = y;
 
     child.g.transition().duration(DURATION).attr('transform', 'translate(' + child.x + ',' + child.y + ')');
 
@@ -722,7 +745,7 @@ function _renderLinks(node) {
       }
     }
 
-    var link = node.g.insert('path', ':first-child').attr('class', 'vtree-link').attr('fill', 'none').attr('stroke', '#888').attr('stroke-width', 2).attr('d', function () {
+    var link = node.g.insert('path', ':first-child').attr('class', 'vtree-link').attr('d', function () {
       return diagonal({ source: src, target: src });
     });
 
@@ -750,7 +773,7 @@ function calcChildrenWidth(node) {
   node.childrenWidth = w;
 }
 
-function calcTotalSize(node) {
+function calcTotalSize(node, height) {
   if (node.children.length === 0) {
     node.totalWidth = node.width;
     node.totalHeight = node.height;
@@ -760,13 +783,13 @@ function calcTotalSize(node) {
 
   node.totalWidth = Math.max(node.width, node.childrenWidth);
 
-  var h = 0;
+  var maxChildH = 0;
 
   node.children.forEach(function (child) {
-    h = Math.max(h, child.totalHeight);
+    maxChildH = Math.max(maxChildH, child.totalHeight);
   });
 
-  node.totalHeight = node.height + HEIGHT + h;
+  node.totalHeight = node.height + height + maxChildH;
 }
 
 /***/ }),
@@ -830,7 +853,7 @@ function obj2node(obj, linkName) {
   var node;
 
   if (isPrimitive(obj)) {
-    node = new _string2.default(obj, []);
+    node = new _string2.default(obj);
   } else if (Array.isArray(obj)) {
     var nodes = [];
 
@@ -973,22 +996,31 @@ var LinkNameDecorator = function () {
 
   _createClass(LinkNameDecorator, [{
     key: 'render',
-    value: function render(g, oldG, width, height) {
-      var t = g.append('text').attr('x', Math.round(width / 2)).attr('y', -pad).attr('text-anchor', 'middle').text(this.linkName);
+    value: function render(g, oldG, width) {
+      var t = g.append('text').text(this.linkName);
 
       var b = t.node().getBBox();
-      var w = Math.ceil(b.width);
-      // const h = Math.ceil(b.height);
+      var textW = Math.ceil(b.width);
+      var textH = Math.ceil(b.height);
 
-      var ww = w + pad * 2;
+      var textTotalW = textW + pad * 2;
 
-      /*
-      const hh = h + pad * 2;
-       newG
-        .attr('transform', `translate(0,${-hh})`);
-      */
+      var newW = width;
 
-      return { width: Math.max(ww, width), height: height };
+      if (textTotalW > width) {
+        newW = textTotalW;
+      }
+
+      var textTotalH = textH + pad;
+
+      var dw = newW - width;
+      var dh = textTotalH;
+      var dx = Math.round(dw / 2);
+      var dy = textTotalH;
+
+      t.attr('x', Math.round(newW / 2)).attr('y', textH).attr('text-anchor', 'middle');
+
+      return { dx: dx, dy: dy, dw: dw, dh: dh };
     }
   }]);
 
@@ -1099,6 +1131,9 @@ var WIDTH = 960;
 var HEIGHT = 800;
 var MARGIN = 20;
 
+var DEFAULT_TREE_LAYOUT_HEIGHT = 50;
+var DEBUG_TREE_LAYOUT_HEIGHT = 100;
+
 var VTree = function () {
   function VTree(container) {
     var _this = this;
@@ -1106,16 +1141,17 @@ var VTree = function () {
     _classCallCheck(this, VTree);
 
     this.root = new _array2.default([], new _array4.default({ hideLinks: true }));
-
-    this.defaultLayout = new _tree2.default();
-
+    this.defaultLayout = new _tree2.default({ height: DEFAULT_TREE_LAYOUT_HEIGHT });
     this.container = container;
+    this._width = WIDTH;
+    this._height = HEIGHT;
+    this._debug = false;
 
     this.d3 = {};
 
-    this.d3.container = d3.select(this.container).style('position', 'relative');
+    this.d3.container = d3.select(this.container);
 
-    this.d3.zoomListener = d3.behavior.zoom().scaleExtent([1, 10]).on('zoom', function () {
+    this.d3.zoomListener = d3.behavior.zoom().scaleExtent([0.1, 10]).on('zoom', function () {
       var e = d3.event;
 
       if (_this.d3.g) {
@@ -1123,10 +1159,53 @@ var VTree = function () {
       }
     });
 
-    this.d3.svg = this.d3.container.append('svg').attr('class', 'vtree').attr('width', WIDTH).attr('height', HEIGHT).call(this.d3.zoomListener);
+    this.d3.svg = this.d3.container.append('svg').attr('class', 'vtree').attr('width', this._width).attr('height', this._height).call(this.d3.zoomListener);
   }
 
   _createClass(VTree, [{
+    key: 'width',
+    value: function width(_width) {
+      if (arguments.length === 0) {
+        return this._width;
+      }
+
+      this._width = _width;
+
+      this.d3.container.select('svg').attr('width', _width);
+
+      return this;
+    }
+  }, {
+    key: 'height',
+    value: function height(_height) {
+      if (arguments.length === 0) {
+        return this._height;
+      }
+
+      this._height = _height;
+
+      this.d3.container.select('svg').attr('height', _height);
+
+      return this;
+    }
+  }, {
+    key: 'debug',
+    value: function debug(_debug) {
+      if (arguments.length === 0) {
+        return this._debug;
+      }
+
+      if (_debug) {
+        this.defaultLayout.height = DEBUG_TREE_LAYOUT_HEIGHT;
+      } else {
+        this.defaultLayout.height = DEFAULT_TREE_LAYOUT_HEIGHT;
+      }
+
+      this._debug = _debug;
+
+      return this;
+    }
+  }, {
     key: 'data',
     value: function data(_data) {
       if (Array.isArray(_data)) {
@@ -1168,11 +1247,11 @@ var VTree = function () {
 
       this.d3.svg.selectAll('*').remove();
 
-      var g = this.d3.svg.selectAll('g.vtree-root').data([root]).enter().append('g').attr('class', 'vtree-root');
+      this._debugDrawGrid();
 
-      this.d3.g = g;
+      this.d3.g = this.d3.svg.selectAll('g.vtree-root').data([root]).enter().append('g').attr('class', 'vtree-root');
 
-      this.createTreeGroups(g, 0);
+      this.createTreeGroups(this.d3.g, 0);
 
       (0, _util.visitAfter)(this.root, function (node) {
         node.render(node.g);
@@ -1186,16 +1265,92 @@ var VTree = function () {
         }
       });
 
-      var x = Math.round((WIDTH - this.root.width) / 2);
-      var y = Math.round((HEIGHT - this.root.totalHeight) / 2);
-
-      if (y < MARGIN) {
-        y = MARGIN;
+      if (this._debug) {
+        (0, _util.visitAfter)(this.root, function (node) {
+          _this2._debugDrawNodeInfo(node);
+        });
       }
 
-      this.root.g.attr('transform', 'translate(' + x + ',' + y + ')');
+      this.setRootPos();
 
       return this;
+    }
+  }, {
+    key: 'setRootPos',
+    value: function setRootPos() {
+      this.root.x = Math.round((this._width - this.root.width) / 2);
+      this.root.y = Math.round((this._height - this.root.totalHeight) / 2);
+
+      if (this.root.y < MARGIN) {
+        this.root.y = MARGIN;
+      }
+
+      this.root.g.attr('transform', 'translate(' + this.root.x + ',' + this.root.y + ')');
+    }
+  }, {
+    key: '_debugGetG',
+    value: function _debugGetG() {
+      if (!this._debug) {
+        return;
+      }
+
+      var g = this.d3.svg.select('g.debug-info');
+
+      if (!g.empty()) {
+        return g;
+      }
+
+      return this.d3.svg.append('g').attr('class', 'debug-info');
+    }
+  }, {
+    key: '_debugDrawGrid',
+    value: function _debugDrawGrid() {
+      if (!this._debug) {
+        return;
+      }
+
+      var g = this._debugGetG();
+
+      g.append('line').style('stroke', 'red').attr('x1', this._width / 2).attr('y1', 0).attr('x2', this._width / 2).attr('y2', this._height);
+
+      g.append('line').style('stroke', 'red').attr('x1', 0).attr('y1', this._height / 2).attr('x2', this._width).attr('y2', this._height / 2);
+    }
+  }, {
+    key: '_debugDrawNodeInfo',
+    value: function _debugDrawNodeInfo(node) {
+      if (node.constructor.name === 'ArrayNode') {
+        return;
+      }
+
+      // node rect
+      node.g.append('rect').style('fill', 'none').style('stroke', 'tomato').attr('x', -1).attr('y', -1).attr('width', node.width + 2).attr('height', node.height + 2);
+
+      // node total rect
+      node.g.append('rect').style('fill', 'none').style('stroke', 'mediumpurple').attr('x', (node.width - node.totalWidth) / 2).attr('y', 0).attr('width', node.totalWidth).attr('height', node.totalHeight);
+
+      // x, y
+      var xy = node.g.append('text').text('x=' + node.x + ' y=' + node.y);
+
+      var bbox = xy.node().getBBox();
+      var x = node.width / 2;
+      var y = node.height + bbox.height + 2;
+
+      xy.attr('x', x).attr('y', y).attr('text-anchor', 'middle');
+
+      y += bbox.height + 2;
+
+      // width, height
+      node.g.append('text').text('w=' + node.width + ' h=' + node.height).attr('x', x).attr('y', y).attr('text-anchor', 'middle');
+
+      y += bbox.height + 2;
+
+      // totalWidth, totalHeight
+      node.g.append('text').text('tw=' + node.totalWidth + ' th=' + node.totalHeight).attr('x', x).attr('y', y).attr('text-anchor', 'middle');
+
+      y += bbox.height + 2;
+
+      // childrenWidth
+      node.g.append('text').text('cw=' + node.childrenWidth).attr('x', x).attr('y', y).attr('text-anchor', 'middle');
     }
   }]);
 
