@@ -10,11 +10,19 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="dist/vtree.js"></script>
 
+<!-- How to use debug mode.
+  1. open browser's developer tools.
+  2. input the following command.
+     vt.debug(true).update()
+-->
+
 <script type="text/javascript">
+var vt;
+
 window.onload = function () {
   var container = document.getElementById("container");
   var msg = document.getElementById("msg");
-  var vt = new VTree(container);
+  vt = new VTree(container);
   var reader = new VTree.reader.Object();
 
   function updateTree() {
