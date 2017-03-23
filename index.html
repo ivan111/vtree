@@ -13,12 +13,21 @@
 <script type="text/javascript">
 window.onload = function () {
   var container = document.getElementById("container");
+  var msg = document.getElementById("msg");
   var vt = new VTree(container);
   var reader = new VTree.reader.Object();
 
   function updateTree() {
     var s = document.getElementById("from-text").value;
-    var jsonData = JSON.parse(s);
+
+    msg.innerHTML = '';
+
+    try {
+      var jsonData = JSON.parse(s);
+    } catch (e) {
+      msg.innerHTML = 'JSON parse error: ' + e.message;
+    }
+
     var data = reader.read(jsonData);
 
     vt.data(data)
@@ -50,6 +59,8 @@ window.onload = function () {
     <div style="margin-top: 1em;">
       <input id="go-button" type="button" value="Visualize">
     </div>
+
+    <div id="msg" style="color: red;"></div>
 
     <div id="container"></div>
 
