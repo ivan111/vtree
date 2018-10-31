@@ -33,6 +33,12 @@ function obj2node(obj, linkName) {
       }
     });
 
+    // empty array
+    if (nodes.length === 0) {
+      node = obj2node(null, `${linkName}[]`);
+      nodes.push(node);
+    }
+
     node = new ArrayNode(nodes);
   } else {
     var name;
