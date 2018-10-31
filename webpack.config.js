@@ -1,6 +1,8 @@
 const path = require('path')
 
 const config = {
+  mode: 'development',
+
   entry: './src/vtree.js',
 
   output: {
