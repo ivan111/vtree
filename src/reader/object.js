@@ -26,7 +26,9 @@ function obj2node(obj, linkName) {
 
     obj.forEach((item, i) => {
       if (Array.isArray(item)) {
-        nodes.push(new DummyNode(obj2node(item, '')));
+        node = new DummyNode(obj2node(item, ''));
+        node.decorators.push(new LinkNameDecorator(`${linkName}[${i}]`));
+        nodes.push(node);
       } else {
         node = obj2node(item, `${linkName}[${i}]`);
         nodes.push(node);
