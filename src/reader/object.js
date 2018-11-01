@@ -69,7 +69,7 @@ function obj2node(obj, linkName) {
 
   }
 
-  if (linkName !== '' && node.constructor.name !== 'ArrayNode') {
+  if (linkName !== '' && node.constructor !== ArrayNode) {
     node.decorators.push(new LinkNameDecorator(linkName));
   }
 

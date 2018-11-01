@@ -219,7 +219,7 @@ class VTree {
   }
 
   _debugDrawNodeInfo(node) {
-    if (node.constructor.name === 'ArrayNode') {
+    if (node.constructor === ArrayNode) {
       return;
     }
 

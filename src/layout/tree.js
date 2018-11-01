@@ -1,5 +1,7 @@
 /* global d3 */
 
+import ArrayNode from '../node/array.js';
+
 const MARGIN = 10;
 const HEIGHT = 50;
 const DURATION = 1000;
@@ -59,7 +61,7 @@ function renderLinks(node) {
       y: child.y + child.linkY
     };
 
-    if (child.constructor.name === 'ArrayNode') {
+    if (child.constructor === ArrayNode) {
       if (child.children.length !== 0) {
         const gc = child.children[0]
         dst.x += gc.x + gc.linkX;
