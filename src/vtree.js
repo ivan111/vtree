@@ -20,6 +20,18 @@ const MARGIN = 20;
 const DEFAULT_TREE_LAYOUT_HEIGHT = 50;
 const DEBUG_TREE_LAYOUT_HEIGHT = 100;
 
+const style = `
+.vtree-node text { font: 14px sans-serif; }
+.vtree-link { fill: none; stroke: #888; stroke-width: 2px; }
+.vtree-table { stroke-width: 2px; stroke: steelblue; }
+path.vtree-table { fill: white; }
+g.vtree-node rect { fill: white; stroke: black; stroke-width: 1px; }
+g.vtree-node rect.number-text { fill: #d8f0ed; }
+g.vtree-node rect.string-text { fill: #e7f0db; }
+g.vtree-node rect.boolean-text { fill: #e1d8f0; }
+g.vtree-node rect.null-text { fill: #888; }
+`;
+
 
 class VTree {
   constructor(container) {
@@ -103,6 +115,24 @@ class VTree {
     return this;
   }
 
+  createSvgString() {
+    var svg = this.d3.svg.node();
+    var serializer = new XMLSerializer();
+    var source = serializer.serializeToString(svg);
+
+    if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+
+    if (!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+    }
+
+    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+    return source;
+  }
+
   createTreeGroups(parentG, depth) {
     var hasChildren = false;
 
@@ -134,6 +164,8 @@ class VTree {
     };
 
     this.d3.svg.selectAll('*').remove();
+
+    this.d3.svg.append('style').text(style);
 
     this._debugDrawGrid();
 
